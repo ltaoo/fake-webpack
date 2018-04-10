@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "enhanced-resolve": "0.4.0"
+    "enhanced-require": "0.4.0",
+    "enhanced-resolve": "0.4.0",
+    "esprima": "^4.0.0"
   }
 }

@@ -2,6 +2,30 @@ const fs = require('fs');
 const path = require('path');
 
 const resolve = require('enhanced-resolve');
+
+const buildModule = require('./buildModule');
+
+/** 
+ * interface Reason {
+ *  type: String;
+ * }
+ * interface Module {
+ *  id: number;
+ *  request: String;
+ *  reasons: Array<Reason>;
+ *  loaders: Array;
+ *  dependencies: Array;
+ * }
+ * interface Resource {
+ *  path: String;
+ *  query?: String;
+ *  module: Boolean;
+ * }
+ * interface RequestObj {
+ *  loaders?: [];
+ *  resource: Resource;
+ * }
+ */
 /**
  * 
  * @param {Path} context - 当前文件夹
@@ -15,8 +39,9 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
         // 错误提示
         warnings: [],
         errors: [],
-        // 所有的模块
+        // 所有的模块，以文件路径作为 key，值为 Module interface
         modules: {},
+        // 所有的模块，以 id 作为 key，值为 Module interface
         modulesById: {},
         // 所有 chunk
         chunks: {},
@@ -122,8 +147,9 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
             };
 
             depTree.modulesById[modu.id] = modu;
+            // RequestObj
             const requestObj = resolve.parse(request);
-
+            console.log(requestObj);
             if (options.cache) {
 
             } else {
@@ -160,52 +186,52 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                         return l.path;
                     });
 
-                    modu.dependencies = 
+                    modu.dependencies =
                         ((requestObj.resource && requestObj.resource.path)
                         && [requestObj.resource.path])
                         || [];
                     
-                    // buildModule(
-                    //     context, 
-                    //     request, 
-                    //     preLoaders, 
-                    //     requestObj.loaders || [],
-                    //     postLoaders,
-                    //     requestObj,
-                    //     options,
-                    //     function (err, extraResults, source, deps) {
-                    //         const dependencyInfo = extraResults && extraResults.dependencyInfo;
-                    //         if (dependencyInfo) {
-                    //             modu.dependencies = dependencyInfo.files;
-                    //         }
+                    buildModule(
+                        context, 
+                        request, 
+                        preLoaders, 
+                        requestObj.loaders || [],
+                        postLoaders,
+                        requestObj,
+                        options,
+                        function (err, extraResults, source, deps) {
+                            const dependencyInfo = extraResults && extraResults.dependencyInfo;
+                            if (dependencyInfo) {
+                                modu.dependencies = dependencyInfo.files;
+                            }
 
-                    //         if (extraResults && extraResults.warnings && extraResults.warnings.legnth > 0) {
-                    //             extraResults.warnings.forEach(function (w) {
-                    //                 depTree.warnings.push(w + '\n @ loader @' + request);
-                    //             });
+                            if (extraResults && extraResults.warnings && extraResults.warnings.legnth > 0) {
+                                extraResults.warnings.forEach(function (w) {
+                                    depTree.warnings.push(w + '\n @ loader @' + request);
+                                });
 
-                    //             modu.warnings = extraResults.warnings;
-                    //         }
-                    //         if (extraResults && extraResults.errors && extraResults.errors.legnth > 0) {
-                    //             extraResults.errors.forEach(function (w) {
-                    //                 depTree.errors.push(w + '\n @ loader @' + request);
-                    //             });
+                                modu.warnings = extraResults.warnings;
+                            }
+                            if (extraResults && extraResults.errors && extraResults.errors.legnth > 0) {
+                                extraResults.errors.forEach(function (w) {
+                                    depTree.errors.push(w + '\n @ loader @' + request);
+                                });
 
-                    //             modu.errors = extraResults.errors;
-                    //         }
+                                modu.errors = extraResults.errors;
+                            }
 
-                    //         if (err) {
-                    //             modu.error = err;
-                    //             return callback(err);
-                    //         }
+                            if (err) {
+                                modu.error = err;
+                                return callback(err);
+                            }
 
-                    //         if (dependencyInfo.cacheable && options.cache) {
+                            if (dependencyInfo.cacheable && options.cache) {
 
-                    //         }
+                            }
 
-                    //         return processParsedJs(source, deps);
-                    //     }
-                    // ); // end invoke build
+                            return processParsedJs(source, deps);
+                        }
+                    ); // end invoke build
                 }
             } // end readFile func define
 

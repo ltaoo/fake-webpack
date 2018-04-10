@@ -15,6 +15,15 @@ const buildModule = require('./buildModule');
  *  reasons: Array<Reason>;
  *  loaders: Array;
  *  dependencies: Array;
+ *  requires: Array;
+ *  async: Array;
+ *  contexts: Array;
+ *  source: String;
+ *  name: String;
+ *  chunkId: String;
+ *  chunks: Array;
+ *  usages: Number;
+ *  realId: Number;
  * }
  * interface Resource {
  *  path: String;
@@ -24,6 +33,22 @@ const buildModule = require('./buildModule');
  * interface RequestObj {
  *  loaders?: [];
  *  resource: Resource;
+ * }
+ * interface Require {
+ *  // 导入依赖时的字符串，如 './increment'
+ *  name: String;
+ *  idOnly: Boolean;
+ *  expressionRange: Array<Array>;
+ *  line: Number;
+ *  column: Number;
+ *  inTry?:
+ * }
+ * interface Chunk {
+ *  id: String;
+ *  modules: Array;
+ *  contexts: Array;
+ *  usages: Number;
+ *  readId: Number;
  * }
  */
 /**
@@ -64,7 +89,7 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
             }
         }
         // 依赖解析成功后，构建树
-        console.log(id);
+        // console.log(id);
         buildTree(id);
     });
 
@@ -149,7 +174,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
             depTree.modulesById[modu.id] = modu;
             // RequestObj
             const requestObj = resolve.parse(request);
-            console.log(requestObj);
+            // console.log(requestObj);
             if (options.cache) {
 
             } else {
@@ -228,7 +253,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                             if (dependencyInfo.cacheable && options.cache) {
 
                             }
-
+                            // console.log('before process parsed js', source, deps);
                             return processParsedJs(source, deps);
                         }
                     ); // end invoke build
@@ -245,8 +270,8 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
 
             /**
              * 处理最终解析 js 代码
-             * @param {*} source 
-             * @param {*} deps 
+             * @param {*} source - js 文件源码
+             * @param {Array<Require>} deps - 分析后 source 寻的依赖
              */
             function processParsedJs(source, deps) {
                 modu.requires = deps.requires || [];
@@ -264,7 +289,8 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                         return;
                     }
 
-                    requires[r.name] = (requires[r.name] || []).push(r);
+                    requires[r.name] = requires[r.name] || [];
+                    requires[r.name].push(r);
                 }
 
                 function addContext(m) {
@@ -295,7 +321,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                     });
                 }
                 if (modu.asyncs) {
-                    modu.asnycs.forEach(function addAsync(c) {
+                    modu.asyncs.forEach(function addAsync(c) {
                         if (c.requires) {
                             c.requests.forEach(add);
                         }
@@ -309,7 +335,8 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 }
 
                 const requiresNames = Object.keys(requires);
-                const count = requiresNames.length + contexts.length + 1;
+                // console.log('requires', requires);
+                let count = requiresNames.length + contexts.length + 1;
                 const errors = [];
                 const requireContext = 
                     (requestObj.resource && requestObj.resource.path)
@@ -318,9 +345,10 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 
                 if (requiresNames.length) {
                     requiresNames.forEach(function (moduleName) {
+                        // console.log(moduleName);
                         const reason = {
                             type: 'require',
-                            asnyc: !directRequire[moduleName] || undefined,
+                            async: !directRequire[moduleName] || undefined,
                             count: requires[moduleName].length,
                             request: request,
                             filename: requestObj.resource && requestObj.resource.path,
@@ -329,6 +357,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                         addModule(depTree, requireContext, moduleName, options, reason, function (err, moduleId) {
                             if (err) {
                                 const errors = false;
+                                // console.log('343', requires[moduleName]);
                                 requires[moduleName].forEach(function (requireItem) {
                                     if (!requireItem.inTry) {
                                         error = true;
@@ -378,7 +407,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 endOne();
 
                 function endOne() {
-                    count --;
+                    count -= 1;
                     if (count === 0) {
                         if (errors.length) {
                             callback(errors.join('\n'));
@@ -560,15 +589,15 @@ function createRealIds(depTree, options) {
         }
 
         const modu = depTree.modulesById[id];
-        const usages = 1;
-        modu.reason.forEach(function (reason) {
+        let usages = 1;
+        modu.reasons.forEach(function (reason) {
             usages += reason.count ? reason.count : 1;
         });
         modu.usages = usages;
         sortedModules.push(modu);
     }
 
-    depTree.modulesById[0].readId = 0;
+    depTree.modulesById[0].realId = 0;
     sortedModules.sort(function (a, b) {
         if (
             (a.chunks && b.chunks)
@@ -667,7 +696,7 @@ function addModuleToChunk(depTree, context, chunkId, options) {
         }
 
         if (context.asyncs) {
-            context.asnycs.forEach(function (context) {
+            context.asyncs.forEach(function (context) {
                 if (options.single) {
 
                 } else {

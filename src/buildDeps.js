@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const resolve = require('enhanced-resolve');
 /**
  * 
@@ -9,10 +12,13 @@ const resolve = require('enhanced-resolve');
 module.exports = function buildDeps(context, mainModule, options, callback) {
     // 声明数据结构
     const depTree = {
+        // 错误提示
         warnings: [],
         errors: [],
+        // 所有的模块
         modules: {},
         modulesById: {},
+        // 所有 chunk
         chunks: {},
         chunkCount: 0,
         nextModuleId: 0,
@@ -22,7 +28,8 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
 
     // emit some event
 
-    addModule(depTree, context, mainModule, options, { type: 'main'}, function (err, id) {
+    // 开始解析，第一个声明为 'main'
+    addModule(depTree, context, mainModule, options, { type: 'main' }, function (err, id) {
         if (err) {
             if (depTree.modulesById[0]) {
                 depTree.errors.push('Entry module failed!\n' + err + '\n ' + mainModule);
@@ -31,6 +38,8 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
                 return callback(err);
             }
         }
+        // 依赖解析成功后，构建树
+        console.log(id);
         buildTree(id);
     });
 
@@ -71,6 +80,15 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
     }
 }
 
+/**
+ * 
+ * @param {*} depTree - 全局变量
+ * @param {*} context 
+ * @param {*} modu - 入口模块
+ * @param {*} options 
+ * @param {*} reason - 模块说明
+ * @param {*} finalCallback 
+ */
 function addModule(depTree, context, modu, options, reason, finalCallback) {
     // emit task 表示开始任务？
 
@@ -81,6 +99,11 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
 
     const resolveFunc = resolve;
     resolveFunc(context = context || path.dirname(modu), modu, options.resolve, resolved);
+    /**
+     * 
+     * @param {*} err 
+     * @param {string} request - 实际请求的文件路径
+     */
     function resolved(err, request) {
         if (err) {
             callback(err);
@@ -99,7 +122,6 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
             };
 
             depTree.modulesById[modu.id] = modu;
-
             const requestObj = resolve.parse(request);
 
             if (options.cache) {
@@ -143,47 +165,47 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                         && [requestObj.resource.path])
                         || [];
                     
-                    buildModule(
-                        context, 
-                        request, 
-                        preLoaders, 
-                        requestObj.loaders || [],
-                        postLoaders,
-                        requestObj,
-                        options,
-                        function (err, extraResults, source, deps) {
-                            const dependencyInfo = extraResults && extraResults.dependencyInfo;
-                            if (dependencyInfo) {
-                                modu.dependencies = dependencyInfo.files;
-                            }
+                    // buildModule(
+                    //     context, 
+                    //     request, 
+                    //     preLoaders, 
+                    //     requestObj.loaders || [],
+                    //     postLoaders,
+                    //     requestObj,
+                    //     options,
+                    //     function (err, extraResults, source, deps) {
+                    //         const dependencyInfo = extraResults && extraResults.dependencyInfo;
+                    //         if (dependencyInfo) {
+                    //             modu.dependencies = dependencyInfo.files;
+                    //         }
 
-                            if (extraResults && extraResults.warnings && extraResults.warnings.legnth > 0) {
-                                extraResults.warnings.forEach(function (w) {
-                                    depTree.warnings.push(w + '\n @ loader @' + request);
-                                });
+                    //         if (extraResults && extraResults.warnings && extraResults.warnings.legnth > 0) {
+                    //             extraResults.warnings.forEach(function (w) {
+                    //                 depTree.warnings.push(w + '\n @ loader @' + request);
+                    //             });
 
-                                modu.warnings = extraResults.warnings;
-                            }
-                            if (extraResults && extraResults.errors && extraResults.errors.legnth > 0) {
-                                extraResults.errors.forEach(function (w) {
-                                    depTree.errors.push(w + '\n @ loader @' + request);
-                                });
+                    //             modu.warnings = extraResults.warnings;
+                    //         }
+                    //         if (extraResults && extraResults.errors && extraResults.errors.legnth > 0) {
+                    //             extraResults.errors.forEach(function (w) {
+                    //                 depTree.errors.push(w + '\n @ loader @' + request);
+                    //             });
 
-                                modu.errors = extraResults.errors;
-                            }
+                    //             modu.errors = extraResults.errors;
+                    //         }
 
-                            if (err) {
-                                modu.error = err;
-                                return callback(err);
-                            }
+                    //         if (err) {
+                    //             modu.error = err;
+                    //             return callback(err);
+                    //         }
 
-                            if (dependencyInfo.cacheable && options.cache) {
+                    //         if (dependencyInfo.cacheable && options.cache) {
 
-                            }
+                    //         }
 
-                            return processParsedJs(source, deps);
-                        }
-                    ); // end invoke build
+                    //         return processParsedJs(source, deps);
+                    //     }
+                    // ); // end invoke build
                 }
             } // end readFile func define
 
@@ -384,7 +406,7 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
             const contextModule = depTree.modules[dirname] = {
                 name: contextModuleName,
                 dirname: dirname,
-                id： depTree.nextModuleId++,
+                id: depTree.nextModuleId++,
                 requireMap: {},
                 requires: [],
                 reasons: [reason],
@@ -465,7 +487,7 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
                                             async: reason.async,
                                             dirname: contextModuleNameWithLoaders,
                                             filename: reason.filename,
-                                        }:
+                                        };
 
                                         addModule(depTree, dirname, prependLoaders + filename, options, modulereason, function (err, moduleId) {
                                             if (err) {

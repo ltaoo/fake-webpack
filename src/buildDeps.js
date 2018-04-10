@@ -68,7 +68,7 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
         modules: {},
         // 所有的模块，以 id 作为 key，值为 Module interface
         modulesById: {},
-        // 所有 chunk
+        // 所有 chunk，一个 chunk 表示一个入口
         chunks: {},
         chunkCount: 0,
         nextModuleId: 0,

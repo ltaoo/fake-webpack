@@ -1,12 +1,36 @@
-import { readdir } from 'fs';
-
 /**
  * @file 将单个 js 文件的内容，提取并返回
  */
 const path = require('path');
 
-module.exports = function (module, options, toRealId, toRealChunkId) {
+/** 
+ * interface RequireItem {
+ *  idOnly: Boolean;
+ *  expressionRange?: Array<Number>;
+ *  valueRange?: Array<Number>;
+ *  line: Number;
+ *  column: Number;
+ *  inTry: Undefined;
+ *  id: Number;
+ *  brackets?: String;
+ *  variable?: Boolean;
+ *  requireFunction?: Function;
+ *  moduleExports?: String;
+ *  amdNameRange?: Array<Number>;
+ * }
+ */
+
+/**
+ * @param {Module} module 
+ * @param {Object} options 
+ * @param {Function} toRealId 
+ * @param {Function} toRealChunkId 
+ */
+function writeSource (module, options, toRealId, toRealChunkId) {
     let result;
+
+    const modulePrepends = [];
+    const moduleAppends = [];
 
     if (typeof module.source !== 'string') {
         // 如果没有源码，尝试其他后缀名
@@ -52,8 +76,6 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
         const freeVars = {};
         // { from: 123, to: 125, value: '4' }
         const replaces = [];
-        const modulePrepends = [];
-        const moduleAppends = [];
         const shortenFilename = function (f) {
             return f;
         }
@@ -64,6 +86,12 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
 
         }
 
+        /**
+         * 将模块名替换为 id
+         * example: const add = require('./math');
+         * 将会得到 { from: xx, to: xx, value: id } 这么一个对象，存入 replaces 数组
+         * @param {*} requireItem 
+         */
         function genReplaceRequire(requireItem) {
             if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
                 const prefix = '';
@@ -86,6 +114,7 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
                             (requireItem.append || '')
                         ),
                     });
+                    console.log(replaces);
                 } else if (requireItem.valueRange) {
                     replaces.push({
                         from: requireItem.valueRange[0],
@@ -106,17 +135,17 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
                     }
                 }
             } else if (requireItem.requireFunction) {
-                replaces.push({
-                    from: requireItem.expressionRange[0],
-                    to: requireItem.expressionRange[1],
-                    value: 'require',
-                });
+                // replaces.push({
+                //     from: requireItem.expressionRange[0],
+                //     to: requireItem.expressionRange[1],
+                //     value: 'requiree',
+                // });
             } else if (requireItem.moduleExports) {
-                replaces.push({
-                    from: requireItem.expressionRange[0],
-                    to: requireItem.expressionRange[1],
-                    value: 'module.exports',
-                });
+                // replaces.push({
+                //     from: requireItem.expressionRange[0],
+                //     to: requireItem.expressionRange[1],
+                //     value: 'module.exports',
+                // });
             }
 
             if (requireItem.amdNameRange) {
@@ -125,10 +154,13 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
         }
 
         /**
-         * 
+         * 生成上下文替换
+         * example: 在源码中写 const add = require('./math');
+         * 就会被替换为  const add = require(1);
          * @param {*} contextItem 
          */
         function genContextReplaces(contextItem) {
+            // console.log(contextItem);
             let postfix = '';
             let prefix = '';
 
@@ -158,6 +190,7 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
                         value: JSON.stringify(contextItem.replace[1]),
                     });
                 }
+            // end contextItem.require if
             } else if (contextItem.valueRange) {
                 replaces.push({
                     from: contextItem.valueRange[1] + 1,
@@ -219,7 +252,7 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
                             || JSON.stringify('context: ' + contextItem.name || 'context failed')
                         ) +
                         ''
-                    ) + ')' + postfix;
+                    ) + ')' + postfix,
                 });
 
                 if (contextItem.calleeRange) {
@@ -231,7 +264,7 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
                 }
             } // end expressionRange if
         } // end genContextReplaces func define
-
+        // console.log('module', module);
         if (module.requires) {
             module.requires.forEach(genReplaceRequire)
         }
@@ -301,18 +334,19 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
         replaces.sort(function (a, b) {
             return b.from - a.from;
         });
-
+        // 处理源码 important
         const source = module.source;
         result = [source];
         replaces.forEach(function (repl) {
+            // 把源码拿出来，根据 to 和 from 做切割，把 id 放进去
             const remSource = result.pop();
             result.push(
-                remSource.substr(repl.to + 1),
+                remSource.substr(repl.to),
                 repl.value,
                 remSource.substr(0, repl.from),
             );
         });
-
+        console.log('result', result);
         result = result.reverse().join('');
     } // end normal source case
 
@@ -326,5 +360,8 @@ module.exports = function (module, options, toRealId, toRealChunkId) {
     finalResult.push.apply(finalResult, modulePrepends);
     finalResult.push(result);
     finalResult.push.apply(finalResult, moduleAppends);
+    console.log(finalResult, result);
     return finalResult.join('');
 }
+
+module.exports = writeSource;

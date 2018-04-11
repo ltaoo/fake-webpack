@@ -38,7 +38,8 @@ const buildModule = require('./buildModule');
  *  // 导入依赖时的字符串，如 './increment'
  *  name: String;
  *  idOnly: Boolean;
- *  expressionRange: Array<Array>;
+ *  // 表达式范围，有两个值，
+ *  expressionRange: Array<Number>;
  *  line: Number;
  *  column: Number;
  *  inTry?:
@@ -584,7 +585,7 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
 function createRealIds(depTree, options) {
     const sortedModules = [];
     for (let id in depTree.modulesById) {
-        console.log(id, typeof id);
+        // console.log(id, typeof id);
         // 跳过第一个主入口，不处理?
         if (id === '0') {
             continue;
@@ -637,7 +638,7 @@ function createRealIds(depTree, options) {
         }
         return (a.dirname < b.dirname) ? -1 : 1;
     });
-    console.log(sortedModules);
+    // console.log(sortedModules);
     sortedModules.forEach(function (modu, idx) {
         modu.realId = idx + 1;
     });

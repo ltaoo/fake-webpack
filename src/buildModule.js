@@ -109,14 +109,13 @@ function buildModule(context, request, preLoaders, loaders, postLoaders, request
     function processJs(resultBuffers) {
         const source = resultBuffers[0].toString('utf-8');
         let deps;
-
+        console.log('before parse', options.parse);
         try {
             deps = parse(source, options.parse);
         } catch (e) {
             callback(new Error('File ' + request + 'parsing failed: ' + e), extraResults);
             return;
         }
-
         return callback(null, extraResults, source, deps);
     }
 }

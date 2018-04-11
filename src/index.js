@@ -13,7 +13,7 @@ function webpack(context, moduleName, options, callback) {
     const fileWrites = [];
 
     options.emitFile = function (filename, content, toFront) {
-        console.log(options.outputDirectory, filename);
+        // console.log(options.outputDirectory, filename);
         fileWrites[toFront ? 'unshift' : 'push']([path.join(options.outputDirectory, filename), content]);
     }
 
@@ -115,6 +115,7 @@ function webpack(context, moduleName, options, callback) {
 
                 buffer.push('c:');
                 buffer.push(JSON.stringify(options.publicPrefix.replace(HASH_REGEXP, hash)));
+                buffer.push(',\n');
             } else {
                 // 懒加载的 chunk
                 buffer.push(chunkTemplate[0]);
@@ -291,6 +292,7 @@ function getTemplateFunction(options) {
 
 webpack(__dirname, './test/example.js', {
     output: 'bundle.js',
+    publicPrefix: '',
     outputDirectory: './dist',
 }, function (err, res) {
     if (err) {

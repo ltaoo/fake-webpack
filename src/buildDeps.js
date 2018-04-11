@@ -48,7 +48,7 @@ const buildModule = require('./buildModule');
  *  modules: Array;
  *  contexts: Array;
  *  usages: Number;
- *  readId: Number;
+ *  realId: Number;
  * }
  */
 /**
@@ -584,7 +584,9 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
 function createRealIds(depTree, options) {
     const sortedModules = [];
     for (let id in depTree.modulesById) {
-        if (id === 0) {
+        console.log(id, typeof id);
+        // 跳过第一个主入口，不处理?
+        if (id === '0') {
             continue;
         }
 
@@ -635,8 +637,9 @@ function createRealIds(depTree, options) {
         }
         return (a.dirname < b.dirname) ? -1 : 1;
     });
+    console.log(sortedModules);
     sortedModules.forEach(function (modu, idx) {
-        modu.readId = idx + 1;
+        modu.realId = idx + 1;
     });
 }
 
@@ -913,7 +916,7 @@ function createRealChunkIds(depTree, options) {
         sortedChunks.push(chunk);
     }
 
-    depTree.chunks['main'].readId = 0;
+    depTree.chunks['main'].realId = 0;
     sortedChunks.sort(function (a, b) {
         if (a.usages < b.usages) {
             return -1;
@@ -935,7 +938,7 @@ function createRealChunkIds(depTree, options) {
             for (let id in modules) {
                 if (modules[id] === 'include') {
                     const m = depTree.modulesById[id];
-                    moduleIds.push(m.readId);
+                    moduleIds.push(m.realId);
                 }
             }
             return moduleIds.sort().join('-');
@@ -952,7 +955,7 @@ function createRealChunkIds(depTree, options) {
     }); // end sortedChunks sort function invoke
 
     sortedChunks.forEach(function (chunk, idx) {
-        chunk.readId = idx + 1;
+        chunk.realId = idx + 1;
     });
 }
 

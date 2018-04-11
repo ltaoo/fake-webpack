@@ -79,7 +79,7 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
 
     // emit some event
 
-    // 开始解析，第一个声明为 'main'
+    // 开始解析，第一个模块名声明为 'main'
     addModule(depTree, context, mainModule, options, { type: 'main' }, function (err, id) {
         if (err) {
             if (depTree.modulesById[0]) {
@@ -90,7 +90,6 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
             }
         }
         // 依赖解析成功后，构建树
-        // console.log(id);
         buildTree(id);
     });
 

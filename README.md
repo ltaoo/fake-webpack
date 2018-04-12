@@ -1,5 +1,9 @@
 # 「抄代码」之 webpack
 
+## 运行前
+
+项目使用`ts`，为了简单，全局安装`ts-node`和`typescript`，使用`ts-node`替代`node`执行文件。
+
 ## 支持 commonjs
 
 现有三个文件：
@@ -77,3 +81,6 @@ inc(a);
 
 实际上语法分析后能够得到`./increment`这个字符串所在的「位置」为`(18, 30)`，然后会将整个文件的`0-18`+`id`+`30-content.length`，就得到了想要的字符串。
 
+## 支持 css 文件
+
+## 支持 async

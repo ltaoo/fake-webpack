@@ -6,52 +6,53 @@ const resolve = require('enhanced-resolve');
 const buildModule = require('./buildModule');
 
 /** 
- * interface Reason {
- *  type: String;
- * }
- * interface Module {
- *  id: number;
- *  request: String;
- *  reasons: Array<Reason>;
- *  loaders: Array;
- *  dependencies: Array;
- *  requires: Array;
- *  async: Array;
- *  contexts: Array;
- *  source: String;
- *  name: String;
- *  chunkId: String;
- *  chunks: Array;
- *  usages: Number;
- *  realId: Number;
- * }
- * interface Resource {
- *  path: String;
- *  query?: String;
- *  module: Boolean;
- * }
- * interface RequestObj {
- *  loaders?: [];
- *  resource: Resource;
- * }
- * interface Require {
- *  // 导入依赖时的字符串，如 './increment'
- *  name: String;
- *  idOnly: Boolean;
- *  // 表达式范围，有两个值，
- *  expressionRange: Array<Number>;
- *  line: Number;
- *  column: Number;
- *  inTry?:
- * }
- * interface Chunk {
- *  id: String;
- *  modules: Array;
- *  contexts: Array;
- *  usages: Number;
- *  realId: Number;
- * }
- */
+interface Reason {
+    type: String;
+}
+interface Module {
+    id: number;
+    request: String;
+    reasons: Array<Reason>;
+    loaders: Array;
+    dependencies: Array;
+    requires: Array;
+    async: Array;
+    contexts: Array;
+    source: String;
+    name: String;
+    chunkId: String;
+    chunks: Array;
+    usages: Number;
+    realId: Number;
+}
+interface Resource {
+    path: String;
+    query?: String;
+    module: Boolean;
+}
+interface RequestObj {
+    loaders?: [];
+    resource: Resource;
+}
+interface Require {
+    // 导入依赖时的字符串，如 './increment'
+    name: String;
+    idOnly: Boolean;
+    // 表达式范围，有两个值，
+    expressionRange: Array<Number>;
+    line: Number;
+    column: Number;
+    inTry?:
+}
+interface Chunk {
+    id: String;
+    modules: Array;
+    contexts: Array;
+    usages: Number;
+    realId: Number;
+}
+*/
+
 /**
  * 
  * @param {Path} context - 当前文件夹

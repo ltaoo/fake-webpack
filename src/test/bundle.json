@@ -1,0 +1,245 @@
+{
+  "warnings": [],
+  "errors": ["Cannot find module__webpack_console"],
+  "modules": {
+    "0": {
+      "id": 0,
+      "request":
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js",
+      "reasons": [{ "type": "main" }],
+      "loaders": [],
+      "dependencies": [
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js"
+      ],
+      "requires": [
+        {
+          "name": "./increment",
+          "idOnly": true,
+          "expressionRange": [18, 31],
+          "line": 1,
+          "column": 10,
+          "id": 1
+        },
+        {
+          "name": "__webpack_console",
+          "line": 4,
+          "column": 0,
+          "variable": "console"
+        }
+      ],
+      "asyncs": [],
+      "contexts": [],
+      "source":
+        "var inc = require('./increment').increment;\nvar a = 1;\nconst res = inc(a);\nconsole.log(res);",
+      "name": "main",
+      "chunkId": "main",
+      "chunks": ["main"],
+      "realId": 0
+    },
+    "1": {
+      "id": 1,
+      "request":
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js",
+      "reasons": [
+        {
+          "type": "require",
+          "count": 1,
+          "request":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js",
+          "filename":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js"
+        }
+      ],
+      "loaders": [],
+      "dependencies": [
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js"
+      ],
+      "requires": [
+        {
+          "name": "./math",
+          "idOnly": true,
+          "expressionRange": [18, 26],
+          "line": 1,
+          "column": 10,
+          "id": 2
+        }
+      ],
+      "asyncs": [],
+      "contexts": [],
+      "source":
+        "var add = require('./math').add;\nexports.increment = function(val) {\n    return add(val, 1);\n};",
+      "chunks": ["main"],
+      "usages": 2,
+      "realId": 1
+    },
+    "2": {
+      "id": 2,
+      "request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/math.js",
+      "reasons": [
+        {
+          "type": "require",
+          "count": 1,
+          "request":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js",
+          "filename":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js"
+        }
+      ],
+      "loaders": [],
+      "dependencies": [
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/math.js"
+      ],
+      "requires": [],
+      "asyncs": [],
+      "contexts": [],
+      "source":
+        "exports.add = function() {\n    var sum = 0, i = 0, args = arguments, l = args.length;\n    while (i < l) {\n        sum += args[i++];\n    }\n    return sum;\n};",
+      "chunks": ["main"],
+      "usages": 2,
+      "realId": 2
+    }
+  },
+  "chunks": {
+    "main": {
+      "id": "main",
+      "modules": { "0": "include", "1": "include", "2": "include" },
+      "contexts": [
+        {
+          "id": 0,
+          "request":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js",
+          "reasons": [{ "type": "main" }],
+          "loaders": [],
+          "dependencies": [
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js"
+          ],
+          "requires": [
+            {
+              "name": "./increment",
+              "idOnly": true,
+              "expressionRange": [18, 31],
+              "line": 1,
+              "column": 10,
+              "id": 1
+            },
+            {
+              "name": "__webpack_console",
+              "line": 4,
+              "column": 0,
+              "variable": "console"
+            }
+          ],
+          "asyncs": [],
+          "contexts": [],
+          "source":
+            "var inc = require('./increment').increment;\nvar a = 1;\nconst res = inc(a);\nconsole.log(res);",
+          "name": "main",
+          "chunkId": "main",
+          "chunks": ["main"],
+          "realId": 0
+        }
+      ],
+      "usages": 1,
+      "realId": 0
+    }
+  },
+  "chunkCount": 1,
+  "modulesByFile": {
+    "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js": {
+      "id": 0,
+      "request":
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js",
+      "reasons": [{ "type": "main" }],
+      "loaders": [],
+      "dependencies": [
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js"
+      ],
+      "requires": [
+        {
+          "name": "./increment",
+          "idOnly": true,
+          "expressionRange": [18, 31],
+          "line": 1,
+          "column": 10,
+          "id": 1
+        },
+        {
+          "name": "__webpack_console",
+          "line": 4,
+          "column": 0,
+          "variable": "console"
+        }
+      ],
+      "asyncs": [],
+      "contexts": [],
+      "source":
+        "var inc = require('./increment').increment;\nvar a = 1;\nconst res = inc(a);\nconsole.log(res);",
+      "name": "main",
+      "chunkId": "main",
+      "chunks": ["main"],
+      "realId": 0
+    },
+    "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js": {
+      "id": 1,
+      "request":
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js",
+      "reasons": [
+        {
+          "type": "require",
+          "count": 1,
+          "request":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js",
+          "filename":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/example.js"
+        }
+      ],
+      "loaders": [],
+      "dependencies": [
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js"
+      ],
+      "requires": [
+        {
+          "name": "./math",
+          "idOnly": true,
+          "expressionRange": [18, 26],
+          "line": 1,
+          "column": 10,
+          "id": 2
+        }
+      ],
+      "asyncs": [],
+      "contexts": [],
+      "source":
+        "var add = require('./math').add;\nexports.increment = function(val) {\n    return add(val, 1);\n};",
+      "chunks": ["main"],
+      "usages": 2,
+      "realId": 1
+    },
+    "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/math.js": {
+      "id": 2,
+      "request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/math.js",
+      "reasons": [
+        {
+          "type": "require",
+          "count": 1,
+          "request":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js",
+          "filename":
+            "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/increment.js"
+        }
+      ],
+      "loaders": [],
+      "dependencies": [
+        "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/math.js"
+      ],
+      "requires": [],
+      "asyncs": [],
+      "contexts": [],
+      "source":
+        "exports.add = function() {\n    var sum = 0, i = 0, args = arguments, l = args.length;\n    while (i < l) {\n        sum += args[i++];\n    }\n    return sum;\n};",
+      "chunks": ["main"],
+      "usages": 2,
+      "realId": 2
+    }
+  }
+}

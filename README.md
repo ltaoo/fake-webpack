@@ -42,6 +42,8 @@ node webpack example.js output.js
 
 将生成一份`output.js`文件，该文件能够直接运行在浏览器中。
 
+打包后的文件在`src/test/bundle.js`，构建的依赖树为`src/test/bundle.json`。
+
 
 ## 基本原理
 

@@ -35,7 +35,7 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
       callback(err);
       return;
     }
-    console.log('最终构建出的依赖树', depTree);
+    console.log('最终构建出的依赖树', JSON.stringify(depTree));
     let buffer = [];
 
     let chunksCount = 0;

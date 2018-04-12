@@ -3,7 +3,7 @@
  */
 const writeSource = require('./writeSource');
 
-module.exports = function (depTree, chunk, options) {
+export default function (depTree, chunk, options) {
     if (!options) {
         options = chunk;
         chunk = null;

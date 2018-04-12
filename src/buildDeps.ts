@@ -5,25 +5,62 @@ const resolve = require('enhanced-resolve');
 
 const buildModule = require('./buildModule');
 
-/** 
+// 模块路径
+type ModulePath = string;
+type SourceCode = string;
+type ModuleName = string;
+// 导入依赖时的字符串，如 "./increment"
+type ImportModulePath = string;
+// 模块说明
 interface Reason {
-    type: String;
+    type: string;
+    async?: any;
+    filename?: string;
 }
 interface Module {
     id: number;
-    request: String;
+    request?: string;
     reasons: Array<Reason>;
-    loaders: Array;
-    dependencies: Array;
-    requires: Array;
-    async: Array;
-    contexts: Array;
-    source: String;
-    name: String;
-    chunkId: String;
-    chunks: Array;
-    usages: Number;
-    realId: Number;
+    loaders?: Array<string>;
+    dependencies?: Array<string>;
+    requires?: Array<Require>;
+    asyncs?: Array<Module>;
+    // todo: 待确定
+    contexts?: Array<Require>;
+    source?: SourceCode;
+    // 模块名，比如 main
+    name?: ModuleName;
+    chunkId?: number;
+    chunks?: Array<string>;
+    // 模块被使用次数
+    usages?: number;
+    realId?: number;
+    warnings?: Array<string>;
+    errors?: Array<string>;
+}
+interface Modules {
+    [key: string]: Module;
+}
+interface ModulesById {
+    [key: number]: Module;
+}
+interface DepTree {
+    // 警告提示
+    warnings: Array<string>;
+    // 错误提示
+    errors: Array<string>;
+    // 所有的模块，以文件路径作为 key，值为 Module interface
+    modules: Modules | ModulesById;
+    // 所有的模块，以 id 作为 key，值为 Module interface
+    modulesById?: ModulesById;
+    // 所有 chunk，一个 chunk 表示一个入口
+    chunks: Object;
+    chunkCount: number;
+    nextModuleId: number;
+    nextChunkId: number;
+    chunkModules: Object;
+    // 最后面会将 modules 赋给该变量，并将 modulesById 赋给 modules
+    modulesByFile?: Modules | ModulesById;
 }
 interface Resource {
     path: String;
@@ -31,27 +68,26 @@ interface Resource {
     module: Boolean;
 }
 interface RequestObj {
-    loaders?: [];
-    resource: Resource;
+    loaders?: Array<string>;
+    resource: Array<Resource>;
 }
 interface Require {
-    // 导入依赖时的字符串，如 './increment'
-    name: String;
-    idOnly: Boolean;
+    name: ImportModulePath;
+    idOnly: boolean;
     // 表达式范围，有两个值，
-    expressionRange: Array<Number>;
-    line: Number;
-    column: Number;
-    inTry?:
+    expressionRange: [number, number];
+    line: number;
+    column: number;
+    inTry?: boolean;
 }
 interface Chunk {
     id: String;
-    modules: Array;
-    contexts: Array;
-    usages: Number;
-    realId: Number;
+    parents?: any;
+    modules: Array<string>;
+    contexts: Array<string>;
+    usages: number;
+    realId: number;
 }
-*/
 
 /**
  * 
@@ -60,17 +96,14 @@ interface Chunk {
  * @param {WebpackOptions} options - 配置项
  * @param {Function} callback - 回调
  */
-module.exports = function buildDeps(context, mainModule, options, callback) {
+export default function buildDeps(context: string, mainModule: string, options, callback: Function) {
     // 声明数据结构
-    const depTree = {
+    const depTree: DepTree = {
         // 错误提示
         warnings: [],
         errors: [],
-        // 所有的模块，以文件路径作为 key，值为 Module interface
         modules: {},
-        // 所有的模块，以 id 作为 key，值为 Module interface
         modulesById: {},
-        // 所有 chunk，一个 chunk 表示一个入口
         chunks: {},
         chunkCount: 0,
         nextModuleId: 0,
@@ -81,7 +114,7 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
     // emit some event
 
     // 开始解析，第一个模块名声明为 'main'
-    addModule(depTree, context, mainModule, options, { type: 'main' }, function (err, id) {
+    addModule(depTree, context, mainModule, options, { type: 'main' }, function (err, id?: number) {
         if (err) {
             if (depTree.modulesById[0]) {
                 depTree.errors.push('Entry module failed!\n' + err + '\n ' + mainModule);
@@ -96,10 +129,9 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
 
     /**
      * enhance the tree，这里拆成另一个函数，仅仅是为了语义清晰？
-     * @param {*} mainModuleId 
+     * @param {number} mainModuleId 
      */
-    function buildTree(mainModuleId) {
-
+    function buildTree(mainModuleId: number): void {
         // 将模块分割成 chunks
         depTree.modulesById[mainModuleId].name = 'main';
         addChunk(depTree, depTree.modulesById[mainModuleId], options);
@@ -132,18 +164,18 @@ module.exports = function buildDeps(context, mainModule, options, callback) {
 }
 
 /**
- * 
- * @param {*} depTree - 全局变量
- * @param {*} context 
- * @param {*} modu - 入口模块
- * @param {*} options 
- * @param {*} reason - 模块说明
- * @param {*} finalCallback 
+ * 开始加载模块
+ * @param {DepTree} depTree - 全局变量
+ * @param {string} context 
+ * @param {string} modu - 入口模块
+ * @param {Object} options 
+ * @param {Reason} reason - 模块说明
+ * @param {Function} finalCallback 
  */
-function addModule(depTree, context, modu, options, reason, finalCallback) {
+function addModule(depTree: DepTree, context: string, modu: string, options, reason: Reason, finalCallback: Function): void {
     // emit task 表示开始任务？
 
-    function callback(err, result) {
+    function callback(err: string, result?) {
         // emit task end
         finalCallback(err, result);
     }
@@ -151,11 +183,11 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
     const resolveFunc = resolve;
     resolveFunc(context = context || path.dirname(modu), modu, options.resolve, resolved);
     /**
-     * 
-     * @param {*} err 
+     * 文件加载后的回调
+     * @param {Error} err 
      * @param {string} request - 实际请求的文件路径
      */
-    function resolved(err, request) {
+    function resolved(err: string, request: ModulePath) {
         if (err) {
             callback(err);
             return;
@@ -166,7 +198,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
             callback(null, depTree.modules[request].id);
         } else {
             // 模块不存在，就创建新的
-            const modu = depTree.modules[request] = {
+            const modu: Module = depTree.modules[request] = {
                 id: depTree.nextModuleId++,
                 request,
                 reasons: [reason],
@@ -247,7 +279,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                             }
 
                             if (err) {
-                                modu.error = err;
+                                modu.errors = [err];
                                 return callback(err);
                             }
 
@@ -267,14 +299,15 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 }).map(function (item) {
                     return item.loader || item.loaders.join('!');
                 }).join('!');
-            } // end matchLoadersList func define
+            }
+            // end matchLoadersList func define
 
             /**
              * 处理最终解析 js 代码
              * @param {*} source - js 文件源码
              * @param {Array<Require>} deps - 分析后 source 寻的依赖
              */
-            function processParsedJs(source, deps) {
+            function processParsedJs(source: SourceCode, deps) {
                 modu.requires = deps.requires || [];
                 modu.asyncs = deps.asyncs || [];
                 modu.contexts = deps.contexts || [];
@@ -285,7 +318,11 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 const contexts = [];
                 const directContexts = {};
 
-                function add(r) {
+                /**
+                 * 
+                 * @param {Require} r 
+                 */
+                function add(r: Require) {
                     if (!r.name) {
                         return;
                     }
@@ -302,10 +339,12 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                         });
                     }
                 }
-
+                /** 
+                 * start 这里控制了递归读取模块
+                 */
                 if (modu.requires) {
                     modu.requires.forEach(add);
-                    modu.requires.forEach(function (r) {
+                    modu.requires.forEach(function (r: Require) {
                         if (!r.name) {
                             return;
                         }
@@ -314,7 +353,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 }
                 if (modu.contexts) {
                     modu.contexts.forEach(addContext(modu));
-                    modu.contexts.forEach(function (c) {
+                    modu.contexts.forEach(function (c: Require) {
                         if (!c.name) {
                             return;
                         }
@@ -324,7 +363,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                 if (modu.asyncs) {
                     modu.asyncs.forEach(function addAsync(c) {
                         if (c.requires) {
-                            c.requests.forEach(add);
+                            c.requires.forEach(add);
                         }
                         if (c.asyncs) {
                             c.asyncs.forEach(addAsync);
@@ -334,6 +373,9 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
                         }
                     });
                 }
+                /** 
+                 * end
+                 */
 
                 const requiresNames = Object.keys(requires);
                 // console.log('requires', requires);
@@ -357,7 +399,7 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
 
                         addModule(depTree, requireContext, moduleName, options, reason, function (err, moduleId) {
                             if (err) {
-                                const errors = false;
+                                let error = false;
                                 // console.log('343', requires[moduleName]);
                                 requires[moduleName].forEach(function (requireItem) {
                                     if (!requireItem.inTry) {
@@ -440,15 +482,15 @@ function addModule(depTree, context, modu, options, reason, finalCallback) {
  * @param {*} reason 
  * @param {*} finalCallback 
  */
-function addContextModule(depTree, context, contextModuleName, options, reason, finalCallback) {
+function addContextModule(depTree: DepTree, context, contextModuleName, options, reason: Reason, finalCallback: Function) {
     // emit task
-    function callback(err, result) {
+    function callback(err: string, result?) {
         // emit task end
         finalCallback(err, result);
     }
 
     resolve.context(context, contextModuleName, options.resolve, resolved);
-    function resolved(err, dirname) {
+    function resolved(err: string, dirname: string) {
         if (err) {
             callback(err);
             return;
@@ -476,7 +518,7 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
             dirname = loaders.pop();
 
             // emit context-enum
-            const preLoaders = loaders.length === 0 ? '' : (loaders.join('!') + '!');
+            const prependLoaders = loaders.length === 0 ? '' : (loaders.join('!') + '!');
             const extensions = (options.resolve && options.resolve.extensions) || [''];
 
             /**
@@ -491,16 +533,16 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
                         done(err);
                     } else {
 
-                        const count = list.legnth + 1;
+                        let count = list.legnth + 1;
                         const errors = [];
                         function endOne(err) {
                             if (err) {
                                 errors.push(err);
                             }
 
-                            count --;
+                            count -= 1;
                             if (count === 0) {
-                                if (errors.legnth > 0) {
+                                if (errors.length > 0) {
                                     done(errors.join('\n'));
                                 } else {
                                     done();
@@ -513,19 +555,19 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
                             fs.stat(filename, function (err, stat) {
                                 if (err) {
                                     errors.push(err);
-                                    endOne();
+                                    endOne(null);
                                 } else {
                                     if (stat.isDirectory()) {
                                         // 如果指定该目录不处理
                                         if (options.resolve.modulesDirectories.indexOf(file) >= 0) {
-                                            oneOne();
+                                            endOne(null);
                                         } else {
                                             doDir(filename, moduleName + '/' + file, endOne);
                                         }
                                     } else {
                                         // 不是目录
-                                        const match = false;
-                                        if (loaders.legnth === 0) {
+                                        let match = false;
+                                        if (loaders.length === 0) {
                                             extensions.forEach(function (ext) {
                                                 if (file.substr(file.legnth - ext.length) === ext) {
                                                     match = true;
@@ -533,8 +575,8 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
                                             });
                                         }
 
-                                        if (!match && loaders.legnth === 0) {
-                                            endOne();
+                                        if (!match && loaders.length === 0) {
+                                            endOne(null);
                                             return;
                                         }
 
@@ -547,24 +589,25 @@ function addContextModule(depTree, context, contextModuleName, options, reason, 
 
                                         addModule(depTree, dirname, prependLoaders + filename, options, modulereason, function (err, moduleId) {
                                             if (err) {
-                                                endOne();
+                                                endOne(null);
                                             } else {
                                                 contextModule.requires.push({
                                                     id: moduleId,
                                                 });
 
                                                 contextModule.requireMap[moduleName + '/' + file] = moduleId;
-                                                endOne();
+                                                endOne(null);
                                             }
                                         });
                                     }
                                 }
                             });
                         }); // end list foreach
-                        endOne();
+                        endOne(null);
                     }
                 });
-            } // end doDir func define
+            } 
+            // end doDir func define
             doDir(dirname, '.', function (err) {
                 if (err) {
                     callback(err);
@@ -725,14 +768,13 @@ function addModuleToChunk(depTree, context, chunkId, options) {
  * @param {*} depTree 
  * @param {*} chunk 
  */
-function removeParentsModules(depTree, chunk) {
+function removeParentsModules(depTree: DepTree, chunk: Chunk) {
     if (!chunk.parents) {
         return;
     }
-
     for (let moduleId in chunk.modules) {
-        const inParent = true;
-        const checkParents = {};
+        let inParent = true;
+        const checkedParents = {};
         chunk.parents.forEach(function checkParent(parentId) {
             if (!inParent) {
                 return;
@@ -774,7 +816,7 @@ function checkObsolete(depTree, chunk) {
         }
     }
 
-    if (modules.legnth === 0) {
+    if (modules.length === 0) {
         chunk.contexts.forEach(function (c) {
             c.chunkId = null;
         });

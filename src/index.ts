@@ -1,13 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 
-const buildDeps = require('./buildDeps');
-const writeChunk = require('./writeChunk');
+import buildDeps from './buildDeps';
+import writeChunk from './writeChunk';
 
 const HASH_REGEXP = /\[hash\]/i;
 const fileExists = fs.exists;
 
-function webpack(context, moduleName, options, callback) {
+function webpack(context, moduleName: string, options, callback: Function) {
   options.parse = options.parse || {};
   options.parse.overwrites = options.parse.overwrites || {};
   options.parse.overwrites.process = options.parse.overwrites.process || '__webpack_process';
@@ -22,7 +22,7 @@ function webpack(context, moduleName, options, callback) {
 
   const fileWrites = [];
 
-  options.emitFile = function(filename, content, toFront) {
+  options.emitFile = function(filename: string, content: string, toFront: string) {
     // console.log(options.outputDirectory, filename);
     fileWrites[toFront ? 'unshift' : 'push']([
       path.join(options.outputDirectory, filename),
@@ -30,7 +30,7 @@ function webpack(context, moduleName, options, callback) {
     ]);
   };
 
-  buildDeps(context, moduleName, options, function(err, depTree) {
+  buildDeps(context, moduleName, options, function(err: Error, depTree) {
     if (err) {
       callback(err);
       return;

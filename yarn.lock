@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/node@^9.6.4":
+  version "9.6.4"
+  resolved "http://registry.npm.taobao.org/@types/node/download/@types/node-9.6.4.tgz#0ef7b4cfc3499881c81e0ea1ce61a23f6f4f5b42"
+
 buffer-equal@0.0.x:
   version "0.0.2"
   resolved "http://registry.npm.taobao.org/buffer-equal/download/buffer-equal-0.0.2.tgz#ecbb790f568d40098a6242b54805c75805eb938f"
@@ -25,7 +29,3 @@ enhanced-resolve@0.4.0, enhanced-resolve@0.4.x:
 esprima@^4.0.0:
   version "4.0.0"
   resolved "http://registry.npm.taobao.org/esprima/download/esprima-4.0.0.tgz#4499eddcd1110e0b218bacf2fa7f7f59f55ca804"
-
-typescript@^2.8.1:
-  version "2.8.1"
-  resolved "http://registry.npm.taobao.org/typescript/download/typescript-2.8.1.tgz#6160e4f8f195d5ba81d4876f9c0cc1fbc0820624"

@@ -84,3 +84,19 @@ inc(a);
 ## 支持 css 文件
 
 ## 支持 async
+
+## 源码
+
+addModule -> resolve -> readFile -> buildModule -> fs.readfile -> execLoader -> execLoader -> execLoader -> processJs -> **parse** -> processParsedJs
+
+if (requiresNames.length)  -> addModule
+
+-> 
+
+### addModule
+
+通过该函数，添加模块。从这里作为入口，将会递归调用`addModule`实现对所有的依赖处理。
+
+### processParsedJs
+
+处理经过语法分析后得到的特定结构，从这个结构中提取中文件的依赖。

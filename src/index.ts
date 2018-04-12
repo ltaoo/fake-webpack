@@ -1,3 +1,4 @@
+///<reference path="../typings/index.d.ts" />
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -7,7 +8,7 @@ import writeChunk from './writeChunk';
 const HASH_REGEXP = /\[hash\]/i;
 const fileExists = fs.exists;
 
-function webpack(context, moduleName: string, options, callback: Function) {
+function webpack(context: ContextPath, moduleName: ModulePath, options, callback: Function) {
   options.parse = options.parse || {};
   options.parse.overwrites = options.parse.overwrites || {};
   options.parse.overwrites.process = options.parse.overwrites.process || '__webpack_process';
@@ -22,21 +23,19 @@ function webpack(context, moduleName: string, options, callback: Function) {
 
   const fileWrites = [];
 
-  options.emitFile = function(filename: string, content: string, toFront: string) {
-    // console.log(options.outputDirectory, filename);
+  options.emitFile = function(filename: string, content: string, toFront: boolean) {
     fileWrites[toFront ? 'unshift' : 'push']([
       path.join(options.outputDirectory, filename),
       content,
     ]);
   };
 
-  buildDeps(context, moduleName, options, function(err: Error, depTree) {
+  buildDeps(context, moduleName, options, function(err: Error, depTree: DepTree) {
     if (err) {
       callback(err);
       return;
     }
-    // console.log(depTree);
-
+    console.log('最终构建出的依赖树', depTree);
     let buffer = [];
 
     let chunksCount = 0;
@@ -150,10 +149,10 @@ function webpack(context, moduleName: string, options, callback: Function) {
         buffer.push(chunkTemplate[1]);
       }
 
-      buffer = buffer.join('');
+      const bufferStr = buffer.join('');
 
       // 向 wirteFiles 写入，才能在最终生成文件时生成
-      options.emitFile(filename, buffer, true);
+      options.emitFile(filename, bufferStr, true);
     }
 
     // emit task-end prepare chunks
@@ -236,13 +235,17 @@ function webpack(context, moduleName: string, options, callback: Function) {
         writingFinished();
       }
     }
-
+    // interface BufferObj {
+    //   hash: boolean;
+    //   chunkCount: number;
+    //   modulesCount: number;
+    // }
     function writingFinished() {
-      buffer = {};
-      buffer.hash = hash;
-      buffer.chunkCount = chunksCount;
-      buffer.modulesCount = Object.keys(depTree.modules).length;
-
+      // const bufferObj = {
+      //   hash: hash,
+      //   chunkCount: chunksCount,
+      //   modulesCount: Object.keys(depTree.modules).length,
+      // };
       let sum = 0;
       const fileModulesMap = {};
       const chunkNameMap = {};

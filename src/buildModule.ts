@@ -1,7 +1,7 @@
 /**
  * @file 构建模块
  */
-const fs = require('fs');
+import * as fs from 'fs';
 
 const resolve = require("enhanced-resolve");
 const execLoaders = require("enhanced-require/lib/execLoaders");
@@ -9,7 +9,7 @@ const execLoaders = require("enhanced-require/lib/execLoaders");
 const parse = require('./parse');
 
 /**
- * 
+ * 创建模块
  * @param {*} context 
  * @param {*} request 
  * @param {*} preLoaders 
@@ -19,9 +19,9 @@ const parse = require('./parse');
  * @param {*} options 
  * @param {*} callback 
  */
-function buildModule(context, request, preLoaders, loaders, postLoaders, requestObj, options, callback) {
+export default function buildModule(context, request, preLoaders, loaders, postLoaders, requestObj: RequestObj, options, callback: Function) {
     const files = requestObj.resource && requestObj.resource.path && [requestObj.resource.path] || [];
-    const dependencyInfo = {
+    const dependencyInfo: DependencyInfo = {
         cacheable: true,
         files: files.slice(0),
     };
@@ -43,12 +43,12 @@ function buildModule(context, request, preLoaders, loaders, postLoaders, request
      * @param {*} err 
      * @param {*} content 
      */
-    function onFileRead(err, content) {
+    function onFileRead(err: Error, content: Buffer) {
         if (err) {
             return callback(err, extraResults);
         }
 
-        const loaderContext = {
+        const loaderContext: LoaderContext = {
             loaders: loaders.map(resolve.stringify.part),
             preLoaders: preLoaders.map(resolve.stringify.part),
             postLoaders: preLoaders.map(resolve.stringify.part),
@@ -68,48 +68,67 @@ function buildModule(context, request, preLoaders, loaders, postLoaders, request
 
         loaderContext.loaderType = 'preLoader';
         // 第一次调用 preLoaders
-        execLoaders(context, request, preLoaders, files, [content], loaderContext, dependencyInfo, options, function (err, result) {
-            if (err) {
-                return callback(err, extraResults);
-            }
+        execLoaders(
+            context,
+            request,
+            preLoaders,
+            files,
+            [content],
+            loaderContext,
+            dependencyInfo,
+            options,
+            function (err: Error, result: Array<SourceCode>) {
+                if (err) {
+                    return callback(err, extraResults);
+                }
 
-            loaderContext.loaderType = 'loader';
-            // 第二次是 loaders
-            execLoaders(
-                context, 
-                request, 
-                loaders, 
-                files, 
-                result, 
-                loaderContext, 
-                dependencyInfo, 
-                options, 
-                function (err, result) {
-                    if (err) {
-                        return callback(err, extraResults);
-                    }
-
-                    loaderContext.loaderType = 'postLoader';
-                    // 第三次是 postLoaders
-                    execLoaders(context, request, postLoaders, files, result, loaderContext, dependencyInfo, options, function (err, result) {
+                loaderContext.loaderType = 'loader';
+                // 第二次是 loaders
+                execLoaders(
+                    context,
+                    request,
+                    loaders,
+                    files,
+                    result,
+                    loaderContext,
+                    dependencyInfo,
+                    options,
+                    function (err: Error, result: Array<SourceCode>) {
                         if (err) {
                             return callback(err, extraResults);
                         }
-                        return processJs(result);
-                    });
-                },
-            );
-        });
+
+                        loaderContext.loaderType = 'postLoader';
+                        // 第三次是 postLoaders
+                        execLoaders(
+                            context, 
+                            request, 
+                            postLoaders, 
+                            files, 
+                            result, 
+                            loaderContext, 
+                            dependencyInfo, 
+                            options, 
+                            function (err, result) {
+                                if (err) {
+                                    return callback(err, extraResults);
+                                }
+                                return processJs(result);
+                            }
+                        );
+                    },
+                );
+            }
+        );
     }
 
     /**
      * 
      * @param {Buffer} resultBuffers 
      */
-    function processJs(resultBuffers) {
-        const source = resultBuffers[0].toString('utf-8');
+    function processJs(resultBuffers: Array<SourceCode>) {
+        const source: SourceCode = resultBuffers[0].toString();
         let deps;
-        console.log('before parse', options.parse);
         try {
             deps = parse(source, options.parse);
         } catch (e) {
@@ -119,5 +138,3 @@ function buildModule(context, request, preLoaders, loaders, postLoaders, request
         return callback(null, extraResults, source, deps);
     }
 }
-
-module.exports = buildModule;

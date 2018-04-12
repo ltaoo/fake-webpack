@@ -2,9 +2,20 @@
 # yarn lockfile v1
 
 
-"@types/node@^9.6.4":
+"@types/enhanced-resolve@^0.4.0":
+  version "3.0.0"
+  resolved "http://registry.npm.taobao.org/@types/enhanced-resolve/download/@types/enhanced-resolve-3.0.0.tgz#795eb25a66a4a7c7582f5bae5c711f53ad0fefc9"
+  dependencies:
+    "@types/node" "*"
+    "@types/tapable" "*"
+
+"@types/node@*", "@types/node@^9.6.4":
   version "9.6.4"
   resolved "http://registry.npm.taobao.org/@types/node/download/@types/node-9.6.4.tgz#0ef7b4cfc3499881c81e0ea1ce61a23f6f4f5b42"
+
+"@types/tapable@*":
+  version "1.0.1"
+  resolved "http://registry.npm.taobao.org/@types/tapable/download/@types/tapable-1.0.1.tgz#938bfcc018eda2f386c34e37f084e6e961c08ca6"
 
 buffer-equal@0.0.x:
   version "0.0.2"

@@ -1,7 +1,7 @@
 /**
  * @file 将单个 js 文件的内容，提取并返回
  */
-const path = require('path');
+import * as path from 'path';
 
 /** 
  * interface RequireItem {
@@ -26,54 +26,53 @@ const path = require('path');
  * @param {Function} toRealId 
  * @param {Function} toRealChunkId 
  */
-function writeSource (module, options, toRealId, toRealChunkId) {
+export default function writeSource (module: Module, options, toRealId: Function, toRealChunkId: Function) {
     let result;
 
     const modulePrepends = [];
     const moduleAppends = [];
 
     if (typeof module.source !== 'string') {
-        // 如果没有源码，尝试其他后缀名
-        if (module.requireMap) {
-            const extensions = (
-                (options.resolve && options.resolve.extensions)
-                || ['', '.web.js', '.js']
-            ).slice();
+        // 如果源码不为字符串，尝试其他后缀名
+        // if (module.requireMap) {
+        //     const extensions = (
+        //         (options.resolve && options.resolve.extensions)
+        //         || ['', '.web.js', '.js']
+        //     ).slice();
 
-            const realRequireMap = {};
-            const usedExtensions = [];
-            Object.keys(module.requireMap).sort().forEach(function (file) {
-                const realId = toRealId(module.requireMap[file]);
-                if (!realId) {
-                    realId = realId + '';
-                }
+        //     const realRequireMap = {};
+        //     const usedExtensions = [];
+        //     Object.keys(module.requireMap).sort().forEach(function (file) {
+        //         const realId = toRealId(module.requireMap[file]);
+        //         if (!realId) {
+        //             realId = realId + '';
+        //         }
 
-                realRequireMap[file] = realId;
-                for (let i = 0, l = extensions.length; i < l; i += 1) {
-                    const ext = extensions[i];
-                    const idx = file.lastIndexOf(ext);
+        //         realRequireMap[file] = realId;
+        //         for (let i = 0, l = extensions.length; i < l; i += 1) {
+        //             const ext = extensions[i];
+        //             const idx = file.lastIndexOf(ext);
 
-                    if (idx >= 0 && (idx === (file.length - ext.length))) {
-                        usedExtensions.push(ext);
-                        extensions.splice(i, 1);
-                        i -= 1;
-                    }
-                }
-            });
+        //             if (idx >= 0 && (idx === (file.length - ext.length))) {
+        //                 usedExtensions.push(ext);
+        //                 extensions.splice(i, 1);
+        //                 i -= 1;
+        //             }
+        //         }
+        //     });
 
-            const extensionsAccess = [];
-            usedExtensions.forEach(function (ext) {
-                if (ext === '') {
-                    extensionsAccess.push('map[name]');
-                } else {
-                    extensionsAccess.push('map[name+' + JSON.stringify(ext) + ']');
-                }
-            });
-            // doing...
-        }
+        //     const extensionsAccess = [];
+        //     usedExtensions.forEach(function (ext) {
+        //         if (ext === '') {
+        //             extensionsAccess.push('map[name]');
+        //         } else {
+        //             extensionsAccess.push('map[name+' + JSON.stringify(ext) + ']');
+        //         }
+        //     });
+        // }
     } else {
         // 正常情况
-        const freeVars = {};
+        let freeVars = {};
         // { from: 123, to: 125, value: '4' }
         const replaces = [];
         const shortenFilename = function (f) {
@@ -83,7 +82,6 @@ function writeSource (module, options, toRealId, toRealChunkId) {
         if (module.dirname) {
         }
         if (module.filename) {
-
         }
 
         /**
@@ -92,9 +90,9 @@ function writeSource (module, options, toRealId, toRealChunkId) {
          * 将会得到 { from: xx, to: xx, value: id } 这么一个对象，存入 replaces 数组
          * @param {*} requireItem 
          */
-        function genReplaceRequire(requireItem) {
+        function genReplaceRequire(requireItem: Require) {
             if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
-                const prefix = '';
+                let prefix = '';
                 if (requireItem.name && options.includeFilenames) {
                     prefix += '/*! ' + shortenFilename(requireItem.name) + '*/';
                 }
@@ -114,7 +112,6 @@ function writeSource (module, options, toRealId, toRealChunkId) {
                             (requireItem.append || '')
                         ),
                     });
-                    console.log(replaces);
                 } else if (requireItem.valueRange) {
                     replaces.push({
                         from: requireItem.valueRange[0],
@@ -159,8 +156,7 @@ function writeSource (module, options, toRealId, toRealChunkId) {
          * 就会被替换为  const add = require(1);
          * @param {*} contextItem 
          */
-        function genContextReplaces(contextItem) {
-            // console.log(contextItem);
+        function genContextReplaces(contextItem: Require) {
             let postfix = '';
             let prefix = '';
 
@@ -256,7 +252,7 @@ function writeSource (module, options, toRealId, toRealChunkId) {
                 });
 
                 if (contextItem.calleeRange) {
-                    replaces({
+                    replaces.push({
                         from: contextItem.calleeRange[0],
                         to: contextItem.calleeRange[1],
                         value: 'require',
@@ -272,69 +268,72 @@ function writeSource (module, options, toRealId, toRealChunkId) {
             module.contexts.forEach(genContextReplaces);
         }
 
-        if (module.asyncs) {
-            module.asyncs.forEach(function genReplaceAsync(asyncItem) {
-                const oldFreeVars = freeVars;
-                // reset freeVars
-                freeVars = {};
-            });
-        } // end module.asyncs if
+        // if (module.asyncs) {
+        //     module.asyncs.forEach(function genReplaceAsync(asyncItem) {
+        //         const oldFreeVars = freeVars;
+        //         freeVars = {};
+        //     });
+        // }
 
-        function genReplacesFreeVars(blockRange, freeVars) {
-            const keys = Object.keys(freeVars);
-            const values = [];
-            const removeKeys = [];
-            keys.forEach(function (key, idx) {
-                if (freeVars[key].id === module.id) {
-                    removeKeys.push(idx);
-                } else {
-                    values.push(freeVars[key]);
-                }
-            });
+        /**
+         * 处理变量
+         * @param blockRange 
+         * @param freeVars 
+         */
+        // function genReplacesFreeVars(blockRange, freeVars) {
+        //     const keys = Object.keys(freeVars);
+        //     const values = [];
+        //     const removeKeys = [];
+        //     keys.forEach(function (key, idx) {
+        //         if (freeVars[key].id === module.id) {
+        //             removeKeys.push(idx);
+        //         } else {
+        //             values.push(freeVars[key]);
+        //         }
+        //     });
 
-            removeKeys.reverse().forEach(function (idx) {
-                keys.splice(idx, 1);
-            });
+        //     removeKeys.reverse().forEach(function (idx) {
+        //         keys.splice(idx, 1);
+        //     });
 
-            if (keys.length === 0) {
-                return;
-            }
+        //     if (keys.length === 0) {
+        //         return;
+        //     }
 
-            values.forEach(function (requireItem, idx) {
-                if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
-                    let prefix = '';
-                    if (requireItem.name && options.includeFilenames) {
-                        prefix += '/*! ' + prefix + toRealId(requireItem.id) + ')' + (requireItem.append || '');
-                    }
-                }
-            });
+        //     values.forEach(function (requireItem, idx) {
+        //         if (requireItem.id !== undefined && toRealId(requireItem.id) !== undefined) {
+        //             let prefix = '';
+        //             if (requireItem.name && options.includeFilenames) {
+        //                 prefix += '/*! ' + prefix + toRealId(requireItem.id) + ')' + (requireItem.append || '');
+        //             }
+        //         }
+        //     });
 
-            const start = '/* WEBPACK FREE VAR INJECTION */ (function(' + keys.join(',') + ') {';
-            const end = '/* WEBPACK FREE VAR INJECTION */ }(' + values.join(',') + '))';
+        //     const start = '/* WEBPACK FREE VAR INJECTION */ (function(' + keys.join(',') + ') {';
+        //     const end = '/* WEBPACK FREE VAR INJECTION */ }(' + values.join(',') + '))';
 
-            if (blockRange) {
-                replaces.push({
-                    from: blockRange[0],
-                    from: blockRange[0]-1,
-                    value: start,
-                });
+        //     if (blockRange) {
+        //         replaces.push({
+        //             from: blockRange[0],
+        //             to: blockRange[0]-1,
+        //             value: start,
+        //         });
 
-                replaces.push({
-                    from: blockRange[1],
-                    from: blockRange[1]-1,
-                    value: end,
-                });
-            } else {
-                modulePrepends.unshift('/******/ ' + start + '\n');
-                moduleAppends.push('\n/******/ ' + end);
-            }
-        } // end genReplacesFreeVars func define
+        //         replaces.push({
+        //             from: blockRange[1],
+        //             to: blockRange[1]-1,
+        //             value: end,
+        //         });
+        //     } else {
+        //         modulePrepends.unshift('/******/ ' + start + '\n');
+        //         moduleAppends.push('\n/******/ ' + end);
+        //     }
+        // }
 
-        genReplacesFreeVars(null, freeVars);
+        // genReplacesFreeVars(null, freeVars);
         replaces.sort(function (a, b) {
             return b.from - a.from;
         });
-        // 处理源码 important
         const source = module.source;
         result = [source];
         replaces.forEach(function (repl) {
@@ -346,7 +345,6 @@ function writeSource (module, options, toRealId, toRealChunkId) {
                 remSource.substr(0, repl.from),
             );
         });
-        console.log('result', result);
         result = result.reverse().join('');
     } // end normal source case
 
@@ -363,5 +361,3 @@ function writeSource (module, options, toRealId, toRealChunkId) {
     console.log(finalResult, result);
     return finalResult.join('');
 }
-
-module.exports = writeSource;

@@ -11,6 +11,7 @@ type ModuleName = string;
 // 导入依赖时的字符串，如 "./increment"
 type ImportModulePath = string;
 type ContextPath = string;
+type ChunkName = string;
 // 模块说明
 interface Reason {
     // 'main' | 'require' | 'context';
@@ -40,6 +41,10 @@ interface Module {
     realId?: number;
     warnings?: Array<string>;
     errors?: Array<string>;
+    requireMap?: Object;
+    dirname?: string;
+    filename?: string;
+    size?: number;
 }
 interface Modules {
     [key: string]: Module;
@@ -51,6 +56,19 @@ interface DependencyInfo {
 interface ModulesById {
     [key: number]: Module;
 }
+interface Chunk {
+    id: String;
+    parents?: any;
+    modules: Array<string>;
+    contexts: Array<string>;
+    usages: number;
+    realId: number;
+    empty?: boolean;
+    equals?: string;
+}
+interface Chunks {
+    (key: ChunkName): Chunk;
+}
 interface DepTree {
     // 警告提示
     warnings: Array<string>;
@@ -61,7 +79,7 @@ interface DepTree {
     // 所有的模块，以 id 作为 key，值为 Module interface
     modulesById?: ModulesById;
     // 所有 chunk，一个 chunk 表示一个入口
-    chunks: Object;
+    chunks: Chunks | {};
     chunkCount: number;
     nextModuleId: number;
     nextChunkId: number;
@@ -79,21 +97,25 @@ interface RequestObj {
     resource: Resource;
 }
 interface Require {
+    id?: number;
     name: ImportModulePath;
     idOnly: boolean;
     // 表达式范围，有两个值，
     expressionRange: [number, number];
+    valueRange?: [number, number];
+    deleteRange?: [number, number];
+    amdNameRange?: [number, number];
+    calleeRange?: [number, number];
+    variable?: string;
     line: number;
     column: number;
     inTry?: boolean;
-}
-interface Chunk {
-    id: String;
-    parents?: any;
-    modules: Array<string>;
-    contexts: Array<string>;
-    usages: number;
-    realId: number;
+    brackets?: boolean;
+    append?: boolean;
+    requireFunction?: Function;
+    moduleExports?: boolean;
+    require?: boolean;
+    replace?: boolean;
 }
 interface LoaderContext {
     loaders: Array<string>;

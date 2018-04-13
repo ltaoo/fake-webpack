@@ -40,7 +40,7 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
 
     let chunksCount = 0;
 
-    const chunkIds = Object.keys(depTree.chunks);
+    const chunkIds: string[] = Object.keys(depTree.chunks);
     // 排序
     chunkIds.sort(function(a, b) {
       if (typeof depTree.chunks[b].realId !== 'number') {
@@ -91,7 +91,6 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
 
       chunksCount += 1;
 
-      // console.log('chunk', chunk.realId);
       // const filename = chunk.filename = chunk.realId === 0 ? options.output : chunk.realId + options.outputPostfix;
       const filename = options.output;
       const content = writeChunk(depTree, chunk, options);

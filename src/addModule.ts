@@ -30,6 +30,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
      * @param {string} request - 实际请求的文件路径
      */
     function resolved(err: Error, request: ModulePath) {
+        console.log(request);
         if (err) {
             callback(err);
             return;

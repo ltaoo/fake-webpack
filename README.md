@@ -4,7 +4,17 @@
 
 项目使用`ts`，为了简单，全局安装`ts-node`和`typescript`，使用`ts-node`替代`node`执行文件。
 
-## 支持 commonjs
+## 说明
+
+### v0.1.0 
+
+完成了最简单的打包器，能够将`commonjs`规范的代码打包到一起。
+
+### v0.2.0
+
+支持样式文件的打包。
+
+## 支持 commonj
 
 现有三个文件：
 
@@ -120,10 +130,6 @@ inc(a);
 
 实际上语法分析后能够得到`./increment`这个字符串所在的「位置」为`(18, 30)`，然后会将整个文件的`0-18`+`id`+`30-content.length`，就得到了想要的字符串。
 
-## 支持 css 文件
-
-## 支持 async
-
 ## 源码
 
 addModule -> resolve -> readFile -> buildModule -> fs.readfile -> execLoader -> execLoader -> execLoader -> processJs -> **parse** -> processParsedJs
@@ -132,6 +138,8 @@ if (requiresNames.length)  -> addModule
 
 -> 
 
+buildTree -> addChunk -> addModuleToChunk
+
 ### addModule
 
 通过该函数，添加模块。从这里作为入口，将会递归调用`addModule`实现对所有的依赖处理。
@@ -139,3 +147,9 @@ if (requiresNames.length)  -> addModule
 ### processParsedJs
 
 处理经过语法分析后得到的特定结构，从这个结构中提取中文件的依赖。
+
+## 支持 css
+
+现在在代码中`require('./index.css')`，结果会是什么呢？如果要加载该文件，会在哪个步骤加载进来呢？
+
+在`modules`中是存在`./index.css`这个模块，但是模块没有`source`字段，所以在。

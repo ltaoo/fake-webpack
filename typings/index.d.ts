@@ -6,13 +6,15 @@ declare interface Options {
 }
 
 type ModulePath = string;
-type SourceCode = string;
 type ModuleName = string;
+type ModuleId = number;
+type SourceCode = string;
 // 导入依赖时的字符串，如 "./increment"
 type ImportModulePath = string;
 type ContextPath = string;
 type ChunkName = string;
 type TemplateCode = string;
+type ChunkId = string | number;
 // 模块说明
 interface Reason {
     // 'main' | 'require' | 'context';
@@ -35,8 +37,8 @@ interface Module {
     source?: SourceCode;
     // 模块名，比如 main
     name?: ModuleName;
-    chunkId?: number;
-    chunks?: Array<string>;
+    chunkId?: ChunkId;
+    chunks?: Array<ChunkId>;
     // 模块被使用次数
     usages?: number;
     realId?: number;
@@ -57,13 +59,16 @@ interface DependencyInfo {
 interface ModulesById {
     [key: number]: Module;
 }
+interface ChunkModules {
+    (key: string): string;
+}
 interface Chunk {
-    id: String;
+    id: ChunkId;
     parents?: any;
-    modules: Array<string>;
-    contexts: Array<string>;
+    modules: {} | ChunkModules;
+    contexts: Array<Module>;
     usages: number;
-    realId: number;
+    realId?: number;
     empty?: boolean;
     equals?: string;
 }

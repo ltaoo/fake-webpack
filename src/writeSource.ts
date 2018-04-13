@@ -138,11 +138,11 @@ export default function writeSource (module: Module, options, toRealId: Function
                 //     value: 'requiree',
                 // });
             } else if (requireItem.moduleExports) {
-                // replaces.push({
-                //     from: requireItem.expressionRange[0],
-                //     to: requireItem.expressionRange[1],
-                //     value: 'module.exports',
-                // });
+                replaces.push({
+                    from: requireItem.expressionRange[0],
+                    to: requireItem.expressionRange[1],
+                    value: 'module.exports',
+                });
             }
 
             if (requireItem.amdNameRange) {

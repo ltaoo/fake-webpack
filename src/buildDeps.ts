@@ -48,7 +48,7 @@ export default function buildDeps(context: string, mainModule: string, options, 
      * enhance the tree，这里拆成另一个函数，仅仅是为了语义清晰？
      * @param {number} mainModuleId 
      */
-    function buildTree(mainModuleId: number): void {
+    function buildTree(mainModuleId: ModuleId): void {
         // 将模块分割成 chunks
         depTree.modulesById[mainModuleId].name = 'main';
         addChunk(depTree, depTree.modulesById[mainModuleId], options);
@@ -150,11 +150,11 @@ function createRealIds(depTree, options) {
 /**
  * 
  * @param {*} depTree 
- * @param {*} chunkStartpoint 
+ * @param {*} chunkStartpoint - chunk 开始的模块
  * @param {*} options 
  */
-function addChunk(depTree, chunkStartpoint, options) {
-    let chunk;
+function addChunk(depTree: DepTree, chunkStartpoint: Module, options) {
+    let chunk: Chunk;
     if (chunkStartpoint && chunkStartpoint.name) {
         chunk = depTree.chunks[chunkStartpoint.name];
 
@@ -184,7 +184,14 @@ function addChunk(depTree, chunkStartpoint, options) {
     return chunk;
 }
 
-function addModuleToChunk(depTree, context, chunkId, options) {
+/**
+ * 将模块经过筛选后添加到 chunk 中
+ * @param depTree 
+ * @param context 
+ * @param chunkId 
+ * @param options 
+ */
+function addModuleToChunk(depTree: DepTree, context: Module, chunkId: ChunkId, options) {
     context.chunks = context.chunks || [];
 
     if (context.chunks.indexOf(chunkId) === -1) {

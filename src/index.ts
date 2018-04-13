@@ -35,7 +35,10 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
       callback(err);
       return;
     }
-    console.log('最终构建出的依赖树', JSON.stringify(depTree));
+
+    const _json = JSON.stringify(depTree, null, '\t');
+    fs.writeFileSync(path.resolve(__dirname, '../dist/bundle.json'), _json, 'utf-8');
+
     let buffer = [];
 
     let chunksCount = 0;
@@ -308,7 +311,7 @@ function getTemplateFunction(options) {
 
 webpack(
   __dirname,
-  './test/example.js',
+  './test/loader/jsonfile.js',
   {
     output: 'bundle.js',
     publicPrefix: '',

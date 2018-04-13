@@ -148,8 +148,12 @@ buildTree -> addChunk -> addModuleToChunk
 
 处理经过语法分析后得到的特定结构，从这个结构中提取中文件的依赖。
 
-## 支持 css
+## 支持 json
 
-现在在代码中`require('./index.css')`，结果会是什么呢？如果要加载该文件，会在哪个步骤加载进来呢？
+现在在代码中`require('./package.json')`，结果会是什么呢？如果要加载该文件，会在哪个步骤加载进来呢？
 
-在`modules`中是存在`./index.css`这个模块，但是模块没有`source`字段，所以在。
+在`resolve`时(`addModule 26line`)，`enhanced-resolve`就会在`node_module`目录寻找`json-loader`依赖，并得到
+
+`/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/json-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/package.json`格式的`request`。
+
+再借助`execLoaders`，读取文件并添加好`module.exports = `，就得到了源码。

@@ -13,13 +13,27 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
   options.parse.overwrites = options.parse.overwrites || {};
   options.parse.overwrites.process = options.parse.overwrites.process || '__webpack_process';
   options.parse.overwrites.module = options.parse.overwrites.module || '__webpack_module+(module)';
-  options.parse.overwrites.console = options.parse.overwrites.console || '__webpack_console';
+  // 当有该配置，会将 console 转为 __webpack_console
+  // options.parse.overwrites.console = options.parse.overwrites.console || '__webpack_console';
   options.parse.overwrites.global = options.parse.overwrites.global || '__webpack_global';
   options.parse.overwrites.Buffer = options.parse.overwrites.Buffer || 'buffer+.Buffer';
   options.parse.overwrites['__dirname'] = options.parse.overwrites['__dirname'] || '__webpack_dirname';
   options.parse.overwrites['__filename'] = options.parse.overwrites['__filename'] || '__webpack_filename';
 
+  /** 
+   * options resolve config start
+   */
   options.resolve = options.resolve || {};
+
+  options.resolve.loaders = options.resolve.loaders || [];
+	options.resolve.loaders.push({test: "\\.coffee$", loader: "coffee"});
+	options.resolve.loaders.push({test: "\\.json$", loader: "json"});
+	options.resolve.loaders.push({test: "\\.jade$", loader: "jade"});
+	options.resolve.loaders.push({test: "\\.css$", loader: "style!css"});
+	options.resolve.loaders.push({test: "\\.less$", loader: "style!css!val/separable?cacheable!less"});
+  /** 
+   * options resolve config end
+   */
 
   const fileWrites = [];
 

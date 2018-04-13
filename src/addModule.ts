@@ -30,7 +30,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
      * @param {string} request - 实际请求的文件路径
      */
     function resolved(err: Error, request: ModulePath) {
-        console.log(request);
+        console.log(err, request);
         if (err) {
             callback(err);
             return;
@@ -62,7 +62,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
                 const preLoaders = '';
                 const postLoaders = '';
 
-                const resolveLoadersFunc = resolve.loaders;
+                // const resolveLoadersFunc = resolve.loaders;
 
                 if (preLoaders) {
 
@@ -95,7 +95,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
                     buildModule(
                         context,
                         request,
-                        preLoaders, 
+                        preLoaders,
                         requestObj.loaders || [],
                         postLoaders,
                         requestObj,

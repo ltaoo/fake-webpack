@@ -4,16 +4,23 @@ import * as path from 'path';
 
 import buildDeps from './buildDeps';
 import writeChunk from './writeChunk';
+import getTemplate, { getChunkTemplate } from './getTemplate';
+import {
+  createDir,
+} from './utils';
 
 const HASH_REGEXP = /\[hash\]/i;
-const fileExists = fs.exists;
 
 function webpack(context: ContextPath, moduleName: ModulePath, options, callback: Function) {
+
+  /** 
+   * 会处理代码中的特定变量
+   */
   options.parse = options.parse || {};
   options.parse.overwrites = options.parse.overwrites || {};
   options.parse.overwrites.process = options.parse.overwrites.process || '__webpack_process';
   options.parse.overwrites.module = options.parse.overwrites.module || '__webpack_module+(module)';
-  options.parse.overwrites.console = options.parse.overwrites.console || '__webpack_console';
+  // options.parse.overwrites.console = options.parse.overwrites.console || '__webpack_console';
   options.parse.overwrites.global = options.parse.overwrites.global || '__webpack_global';
   options.parse.overwrites.Buffer = options.parse.overwrites.Buffer || 'buffer+.Buffer';
   options.parse.overwrites['__dirname'] = options.parse.overwrites['__dirname'] || '__webpack_dirname';
@@ -99,7 +106,7 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
       }
 
       buffer = [];
-      const chunkTemplate = getTemplate.chunk(chunk, options, templateOptions);
+      const chunkTemplate = getChunkTemplate(chunk, options, templateOptions);
       // 第一个 chunk
       if (chunk.realId === 0) {
         if (hash) {
@@ -156,43 +163,6 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
 
     // emit task-end prepare chunks
 
-    /**
-     * 递归创建文件夹
-     * @param {string} dir
-     * @param {Function} callback
-     */
-    function createDir(dir, callback) {
-      fileExists(dir, function(exists) {
-        if (exists) {
-          callback();
-        } else {
-          fs.mkdir(dir, function(err) {
-            if (err) {
-              const parentDir = path.join(dir, '..');
-              if (parentDir === dir) {
-                return callback(err);
-              }
-
-              createDir(parentDir, function(err) {
-                if (err) {
-                  return callback(err);
-                }
-
-                fs.mkdir(dir, function(err) {
-                  if (err) {
-                    return callback();
-                  }
-
-                  callback();
-                });
-              });
-              return;
-            }
-            callback();
-          });
-        }
-      });
-    } // end createDir func define
 
     const outDir = options.outputDirectory.replace(HASH_REGEXP, hash);
     createDir(outDir, function(err) {
@@ -270,40 +240,6 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
       });
     }
   });
-}
-
-/**
- *
- * @param {*} options
- * @param {*} templateOptions
- */
-function getTemplate(options, templateOptions) {
-  return getTemplateFunction(options)(options, templateOptions);
-}
-
-getTemplate.chunk = function(chunk, options, templateOptions) {
-  function fallback(chunk, options) {
-    return [
-      '/******/' + options.outputJsonpFunction + '(' + chunk.realId + ',',
-      ')',
-    ];
-  }
-
-  let templateFunction = getTemplateFunction(options);
-  templateFunction = (templateFunction && templateFunction.chunk) || fallback;
-  return templateFunction(chunk, options, templateOptions);
-};
-
-function getTemplateFunction(options) {
-  if (options.template) {
-    if (typeof options.template === 'string') {
-      return require(options.template);
-    } else {
-      return options.template;
-    }
-  } else {
-    return require('./template/browser');
-  }
 }
 
 webpack(

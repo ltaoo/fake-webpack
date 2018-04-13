@@ -58,33 +58,16 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
              * 读取文件并使用 loader 处理，这一步可能被缓存后就不处理了
              */
             function readFile() {
-                const preLoaders = '';
-                const postLoaders = '';
-
-                const resolveLoadersFunc = resolve.loaders;
-
-                if (preLoaders) {
-
-                } else {
-                    onPreLoadersResolved(null, []);
-                }
-
+                onPreLoadersResolved(null);
                 /**
                  * 
                  * @param {Error} err 
                  * @param {Array} preLoaders 
                  */
-                function onPreLoadersResolved(err: Error, preLoaders) {
+                function onPreLoadersResolved(err: Error) {
                     if (err) {
                         return callback(err);
                     }
-
-                    const allLoaders = [];
-
-                    modu.loaders = allLoaders.map(function (l) {
-                        return l.path;
-                    });
-
                     modu.dependencies =
                         (
                             (requestObj.resource && requestObj.resource.path)
@@ -94,9 +77,6 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
                     buildModule(
                         context,
                         request,
-                        preLoaders, 
-                        requestObj.loaders || [],
-                        postLoaders,
                         requestObj,
                         options,
                         function (err: string, extraResults, source: SourceCode, deps) {
@@ -134,16 +114,6 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
                     ); // end invoke build
                 }
             } // end readFile func define
-
-            // function matchLoadersList(list) {
-            //     return list.filter(function (item) {
-            //         return matchRegExpObject(item, requestObj.resource.path);
-            //     }).map(function (item) {
-            //         return item.loader || item.loaders.join('!');
-            //     }).join('!');
-            // }
-            // end matchLoadersList func define
-
             /**
              * 处理最终解析 js 代码
              * @param {*} source - js 文件源码

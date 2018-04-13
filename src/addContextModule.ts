@@ -44,13 +44,6 @@ export default function addContextModule(depTree: DepTree, context, contextModul
 
             depTree.modulesById[contextModule.id] = contextModule;
 
-            // 从 require 中分割 loaders
-            const contextModuleNameWithLoaders = dirname;
-            const loaders = dirname.split(/!/g);
-            dirname = loaders.pop();
-
-            // emit context-enum
-            const prependLoaders = loaders.length === 0 ? '' : (loaders.join('!') + '!');
             const extensions = (options.resolve && options.resolve.extensions) || [''];
 
             /**
@@ -99,27 +92,15 @@ export default function addContextModule(depTree: DepTree, context, contextModul
                                     } else {
                                         // 不是目录
                                         let match = false;
-                                        if (loaders.length === 0) {
-                                            extensions.forEach(function (ext) {
-                                                if (file.substr(file.length - ext.length) === ext) {
-                                                    match = true;
-                                                }
-                                            });
-                                        }
 
-                                        if (!match && loaders.length === 0) {
-                                            endOne(null);
-                                            return;
-                                        }
 
                                         const modulereason = {
                                             type: 'context',
                                             async: reason.async,
-                                            dirname: contextModuleNameWithLoaders,
                                             filename: reason.filename,
                                         };
 
-                                        addModule(depTree, dirname, prependLoaders + filename, options, modulereason, function (err, moduleId) {
+                                        addModule(depTree, dirname, filename, options, modulereason, function (err, moduleId) {
                                             if (err) {
                                                 endOne(null);
                                             } else {

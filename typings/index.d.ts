@@ -26,7 +26,6 @@ interface Module {
     id: number;
     request?: ModulePath;
     reasons: Array<Reason>;
-    loaders?: Array<string>;
     dependencies?: Array<string>;
     requires?: Array<Require>;
     asyncs?: Array<Module>;
@@ -117,16 +116,6 @@ interface Require {
     moduleExports?: boolean;
     require?: boolean;
     replace?: boolean;
-}
-interface LoaderContext {
-    loaders: Array<string>;
-    preLoaders: Array<string>;
-    postLoaders: Array<string>;
-    loaderType?: 'preLoader' | 'loader' | 'postLoader';
-    web: boolean,
-    emitWarning: Function;
-    emitError: Function;
-    resourceQuery?: string;
 }
 interface extraResults  {
     dependencyInfo: DependencyInfo;

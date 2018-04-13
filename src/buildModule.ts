@@ -4,7 +4,6 @@
 import * as fs from 'fs';
 
 import * as resolve from 'enhanced-resolve';
-import * as execLoaders from 'enhanced-require/lib/execLoaders';
 
 const parse = require('./parse');
 
@@ -12,14 +11,11 @@ const parse = require('./parse');
  * 创建模块
  * @param {*} context 
  * @param {*} request 
- * @param {*} preLoaders 
- * @param {*} loaders 
- * @param {*} postLoaders 
  * @param {*} requestObj 
  * @param {*} options 
  * @param {*} callback 
  */
-export default function buildModule(context, request, preLoaders, loaders, postLoaders, requestObj: RequestObj, options, callback: Function) {
+export default function buildModule(context, request, requestObj: RequestObj, options, callback: Function) {
     const files = requestObj.resource && requestObj.resource.path && [requestObj.resource.path] || [];
     const dependencyInfo: DependencyInfo = {
         cacheable: true,
@@ -47,79 +43,7 @@ export default function buildModule(context, request, preLoaders, loaders, postL
         if (err) {
             return callback(err, extraResults);
         }
-
-        const loaderContext: LoaderContext = {
-            loaders: loaders.map(resolve.stringify.part),
-            preLoaders: preLoaders.map(resolve.stringify.part),
-            postLoaders: preLoaders.map(resolve.stringify.part),
-            loaderType: null,
-            web: true,
-            emitWarning: function (warning) {
-                extraResults.warnings.push(warning);
-            },
-            emitError: function (error) {
-                extraResults.errors.push(error);
-            },
-        };
-
-        if (requestObj.resource) {
-            loaderContext.resourceQuery = requestObj.resource.query;
-        }
-
-        loaderContext.loaderType = 'preLoader';
-        // 第一次调用 preLoaders
-        execLoaders(
-            context,
-            request,
-            preLoaders,
-            files,
-            [content],
-            loaderContext,
-            dependencyInfo,
-            options,
-            function (err: Error, result: Array<SourceCode>) {
-                if (err) {
-                    return callback(err, extraResults);
-                }
-
-                loaderContext.loaderType = 'loader';
-                // 第二次是 loaders
-                execLoaders(
-                    context,
-                    request,
-                    loaders,
-                    files,
-                    result,
-                    loaderContext,
-                    dependencyInfo,
-                    options,
-                    function (err: Error, result: Array<SourceCode>) {
-                        if (err) {
-                            return callback(err, extraResults);
-                        }
-
-                        loaderContext.loaderType = 'postLoader';
-                        // 第三次是 postLoaders
-                        execLoaders(
-                            context, 
-                            request, 
-                            postLoaders, 
-                            files, 
-                            result, 
-                            loaderContext, 
-                            dependencyInfo, 
-                            options, 
-                            function (err, result) {
-                                if (err) {
-                                    return callback(err, extraResults);
-                                }
-                                return processJs(result);
-                            }
-                        );
-                    },
-                );
-            }
-        );
+        processJs([content.toString()]);
     }
 
     /**

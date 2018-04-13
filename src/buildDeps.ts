@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const resolve = require('enhanced-resolve');
+import * as resolve from 'enhanced-resolve';
 
 import addModule from './addModule';
 

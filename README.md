@@ -44,6 +44,43 @@ node webpack example.js output.js
 
 打包后的文件在`src/test/bundle.js`，构建的依赖树为`src/test/bundle.json`。
 
+三个文件经过词法分析后得到的结果分别为：
+
+```js
+{
+  overwrite: [],
+  requires: [
+    {
+      name: './increment',
+      idOnly: true,
+      expressionRange: [18, 31],
+      line: 1,
+      column: 10,
+    },
+    { name: '__webpack_console', line: 4, column: 0, variable: 'console' },
+  ],
+};
+```
+
+```js
+{
+  overwrite: [],
+  requires: [
+    {
+      name: './math',
+      idOnly: true,
+      expressionRange: [18, 26],
+      line: 1,
+      column: 10,
+    },
+  ],
+};
+```
+
+```js
+{ overwrite: [] };
+```
+
 
 ## 基本原理
 

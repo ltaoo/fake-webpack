@@ -6,6 +6,29 @@ var esprima = require('esprima');
 
 // Syntax: https://developer.mozilla.org/en/SpiderMonkey/Parser_API
 
+interface Statement {
+  type: string;
+  body: Array<Statement>;
+  expression: Array<Statement>;
+  consequent: Array<Statement>;
+  alternate: Array<Statement>;
+  object?: Array<Statement>;
+  discriminant?: any;
+  cases?: any;
+  argument?: any;
+  block?: any;
+  handlers?: any;
+  finalizer?: any;
+  init?: any;
+  update?: any;
+  declarations?: any;
+}
+/**
+ * 递归遍历表达式
+ * @param {*} options 
+ * @param {*} context 
+ * @param {*} statements 
+ */
 function walkStatements(options, context, statements) {
   statements.forEach(function(statement) {
     walkStatement(options, context, statement);
@@ -220,7 +243,7 @@ function walkExpression(options, context, expression) {
             var pos = param.value.indexOf('/');
             context.contexts = context.contexts || [];
             if (pos === -1) {
-              var newContext = {
+              const newContext = {
                 name: '.',
                 valueRange: elements[idx].range,
                 line: elements[idx].loc.start.line,
@@ -231,7 +254,7 @@ function walkExpression(options, context, expression) {
               var match = /\/[^\/]*$/.exec(param.value);
               var dirname = param.value.substring(0, match.index);
               var remainder = '.' + param.value.substring(match.index);
-              var newContext = {
+              const newContext = {
                 name: dirname,
                 replace: [param.range, remainder],
                 valueRange: elements[idx].range,
@@ -312,7 +335,7 @@ function walkExpression(options, context, expression) {
           column: expression.callee.loc.start.column,
           variable: 'require',
         });
-        var newContext = {
+        const newContext = {
           requires: [],
           amdRange: expression.arguments[0].range,
           line: expression.loc.start.line,
@@ -320,6 +343,7 @@ function walkExpression(options, context, expression) {
           ignoreOverride: true,
           overwrite: context.overwrite.slice(),
           options: options,
+          blockRange: null,
         };
         if (
           expression.arguments.length >= 2 &&
@@ -327,11 +351,12 @@ function walkExpression(options, context, expression) {
           expression.arguments[1].body &&
           expression.arguments[1].body.type === 'BlockStatement' &&
           expression.arguments[1].body.range
-        )
+        ) {
           newContext.blockRange = [
             expression.arguments[1].body.range[0] + 1,
             expression.arguments[1].body.range[1] - 1,
           ];
+        }
         context.asyncs = context.asyncs || [];
         context.asyncs.push(newContext);
         context = newContext;
@@ -456,7 +481,7 @@ function walkExpression(options, context, expression) {
             var match = /\/[^\/]*$/.exec(param.value);
             var dirname = param.value.substring(0, match.index);
             var remainder = '.' + param.value.substring(match.index);
-            var newContext = {
+            const newContext = {
               name: dirname,
               require: true,
               replace: [param.range, remainder],
@@ -493,8 +518,8 @@ function walkExpression(options, context, expression) {
         { async: 1, ensure: 1 }.hasOwnProperty(expression.callee.property.name)
       ) {
         // "require.ensure(...)" or "require.async(...)"
-        var param = parseStringArray(expression.arguments[0]);
-        var newContext = {
+        const param = parseStringArray(expression.arguments[0]);
+        const newContext = {
           requires: [],
           propertyRange: expression.callee.property.range,
           namesRange: expression.arguments[0].range,
@@ -503,6 +528,9 @@ function walkExpression(options, context, expression) {
           ignoreOverride: true,
           overwrite: context.overwrite.slice(),
           options: options,
+          blockRange: null,
+          name: null,
+          nameRange: null,
         };
         param.forEach(function(r) {
           newContext.requires.push({ name: r });
@@ -513,11 +541,12 @@ function walkExpression(options, context, expression) {
           expression.arguments[1].body &&
           expression.arguments[1].body.type === 'BlockStatement' &&
           expression.arguments[1].body.range
-        )
+        ) {
           newContext.blockRange = [
             expression.arguments[1].body.range[0] + 1,
             expression.arguments[1].body.range[1] - 1,
           ];
+        }
         if (expression.arguments[2]) {
           newContext.name = parseString(expression.arguments[2]);
           newContext.nameRange = expression.arguments[2].range;
@@ -542,7 +571,7 @@ function walkExpression(options, context, expression) {
         // "require.context(...)"
         var param = parseString(expression.arguments[0]);
         context.contexts = context.contexts || [];
-        var newContext = {
+        const newContext = {
           name: param,
           expressionRange: expression.arguments[0].range,
           calleeRange: expression.callee.range,
@@ -623,7 +652,7 @@ function walkExpression(options, context, expression) {
         expression.name === 'require'
       ) {
         context.contexts = context.contexts || [];
-        var newContext = {
+        const newContext = {
           name: '.',
           warn: 'Identifier',
           require: true,
@@ -757,17 +786,22 @@ function parseCalculatedStringArray(expression) {
   return [parseCalculatedString(expression)];
 }
 
-module.exports = function parse(source, options) {
-  var ast = esprima.parse(source, { range: true, loc: true, raw: true });
-  if (!ast || typeof ast != 'object')
+/**
+ * 解析源码，根据规则生成
+ * @param {*} source
+ * @param {*} options
+ */
+export default function parse(source: SourceCode, options) {
+  const ast = esprima.parse(source, { range: true, loc: true, raw: true });
+  if (!ast || typeof ast !== 'object') {
     throw new Error("Source couldn't be parsed");
-  options = options || {};
+  }
   options.overwrites = options.overwrites || {};
   options.overwrites.require = true;
-  var context = {
+  const context = {
     overwrite: [],
   };
   walkStatements(options, context, ast.body);
-  console.log(JSON.stringify(context));
+  console.log('parsed statements', JSON.stringify(context));
   return context;
 };

@@ -3,8 +3,8 @@
  */
 import * as fs from 'fs';
 
-const resolve = require("enhanced-resolve");
-const execLoaders = require("enhanced-require/lib/execLoaders");
+import * as resolve from 'enhanced-resolve';
+import * as execLoaders from 'enhanced-require/lib/execLoaders';
 
 const parse = require('./parse');
 

@@ -351,13 +351,12 @@ export default function writeSource (module: Module, options, toRealId: Function
     if (options.minimize) {
 
     } else {
-        module.size = result.length;
+        module.size = result ? result.length : 0;
     }
 
     const finalResult = [];
     finalResult.push.apply(finalResult, modulePrepends);
     finalResult.push(result);
     finalResult.push.apply(finalResult, moduleAppends);
-    console.log(finalResult, result);
     return finalResult.join('');
 }

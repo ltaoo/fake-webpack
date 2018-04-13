@@ -12,6 +12,7 @@ type ModuleName = string;
 type ImportModulePath = string;
 type ContextPath = string;
 type ChunkName = string;
+type TemplateCode = string;
 // 模块说明
 interface Reason {
     // 'main' | 'require' | 'context';
@@ -141,4 +142,10 @@ interface Deps {
 interface Context {
     context: string;
     module: string;
+}
+
+interface BufferObj {
+    hash: boolean;
+    chunkCount: number;
+    modulesCount: number;
 }

@@ -56,7 +56,7 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
     const templateOptions = {
       chunks: chunkIds.length > 1,
     };
-    const template = getTemplate(options, templateOptions);
+    const template: TemplateCode = getTemplate(options, templateOptions);
 
     let hash;
     try {
@@ -150,7 +150,7 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
 
       const bufferStr = buffer.join('');
 
-      // 向 wirteFiles 写入，才能在最终生成文件时生成
+      // 向 wirteFiles 数组 push，才能在最终生成文件时生成
       options.emitFile(filename, bufferStr, true);
     }
 
@@ -234,11 +234,6 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
         writingFinished();
       }
     }
-    // interface BufferObj {
-    //   hash: boolean;
-    //   chunkCount: number;
-    //   modulesCount: number;
-    // }
     function writingFinished() {
       // const bufferObj = {
       //   hash: hash,

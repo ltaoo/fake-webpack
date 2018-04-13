@@ -1,9 +1,11 @@
-const fs = require('fs');
-const path = require('path');
+import * as fs from 'fs';
+import * as path from 'path';
 
 import * as resolve from 'enhanced-resolve';
 
 import addModule from './addModule';
+import addChunk from './addChunk';
+import createRealIds from './createRealIds';
 
 /**
  * 构建依赖树
@@ -53,7 +55,6 @@ export default function buildDeps(context: string, mainModule: string, options, 
         depTree.modulesById[mainModuleId].name = 'main';
         addChunk(depTree, depTree.modulesById[mainModuleId], options);
 
-        // 在定义后重命名模块 id ?
         createRealIds(depTree, options);
         // emit build chunks 表示「完成了一个 chunk 的创建」？
 
@@ -77,149 +78,6 @@ export default function buildDeps(context: string, mainModule: string, options, 
 
         // emit task-end cleanup 表示完成了清理
         callback(null, depTree);
-    }
-}
-
-/**
- * 重命名模块 ids
- * @param {*} depTree 
- * @param {*} options 
- */
-function createRealIds(depTree, options) {
-    const sortedModules = [];
-    for (let id in depTree.modulesById) {
-        // console.log(id, typeof id);
-        // 跳过第一个主入口，不处理?
-        if (id === '0') {
-            continue;
-        }
-
-        const modu = depTree.modulesById[id];
-        let usages = 1;
-        modu.reasons.forEach(function (reason) {
-            usages += reason.count ? reason.count : 1;
-        });
-        modu.usages = usages;
-        sortedModules.push(modu);
-    }
-
-    depTree.modulesById[0].realId = 0;
-    sortedModules.sort(function (a, b) {
-        if (
-            (a.chunks && b.chunks)
-            && (a.chunks.indexOf('main') !== -1 || b.chunks.indexOf('main') !== -1)
-        ) {
-            if (a.chunks.indexOf('main') === -1) {
-                return 1;
-            }
-            if (b.chunks.indexOf('main') === -1) {
-                return -1;
-            }
-        }
-
-        const diff = b.usages - a.usages;
-
-        if (diff !== 0) {
-            return diff;
-        }
-
-        if (typeof a.request === 'string' || typeof b.request === 'string') {
-            if (typeof a.request !== 'string') {
-                return -1;
-            }
-            if (typeof b.request !== 'string') {
-                return 1;
-            }
-            if (a.request === b.request) {
-                return 0;
-            }
-            return (a.request < b.request) ? -1 : 1;
-        }
-
-        if (a.dirname === b.dirname) {
-            return 0;
-        }
-        return (a.dirname < b.dirname) ? -1 : 1;
-    });
-    // console.log(sortedModules);
-    sortedModules.forEach(function (modu, idx) {
-        modu.realId = idx + 1;
-    });
-}
-
-/**
- * 
- * @param {*} depTree 
- * @param {*} chunkStartpoint 
- * @param {*} options 
- */
-function addChunk(depTree, chunkStartpoint, options) {
-    let chunk;
-    if (chunkStartpoint && chunkStartpoint.name) {
-        chunk = depTree.chunks[chunkStartpoint.name];
-
-        if (chunk) {
-            chunk.usages++;
-            chunk.contexts.push(chunkStartpoint);
-        }
-    }
-
-    if (!chunk) {
-        chunk = {
-            id: (chunkStartpoint && chunkStartpoint.name) || depTree.nextChunkId++,
-            modules: {},
-            contexts: chunkStartpoint ? [chunkStartpoint] : [],
-            usages: 1,
-        };
-
-        depTree.chunks[chunk.id] = chunk;
-        depTree.chunkCount++;
-    }
-
-    if (chunkStartpoint) {
-        chunkStartpoint.chunkId = chunk.id;
-        addModuleToChunk(depTree, chunkStartpoint, chunk.id, options);
-    }
-
-    return chunk;
-}
-
-function addModuleToChunk(depTree, context, chunkId, options) {
-    context.chunks = context.chunks || [];
-
-    if (context.chunks.indexOf(chunkId) === -1) {
-        context.chunks.push(chunkId);
-
-        if (context.id !== undefined) {
-            depTree.chunks[chunkId].modules[context.id] = 'include';
-        }
-
-        if (context.requires) {
-            context.requires.forEach(function (requireItem) {
-                if (requireItem.id) {
-                    addModuleToChunk(depTree, depTree.modulesById[requireItem.id], chunkId, options);
-                }
-            });
-        }
-
-        if (context.asyncs) {
-            context.asyncs.forEach(function (context) {
-                if (options.single) {
-
-                } else {
-                    let subChunk;
-                    if (context.chunkId) {
-                        subChunk = depTree.chunks[context.chunkId];
-                        subChunk.usages++;
-                    } else {
-                        subChunk = addChunk(depTree, context, options);
-                    }
-
-                    subChunk.parents = subChunk.parents || [];
-                    subChunk.parents.push(chunkId);
-                }
-            });
-        }
     }
 }
 

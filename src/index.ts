@@ -13,18 +13,8 @@ const HASH_REGEXP = /\[hash\]/i;
 
 function webpack(context: ContextPath, moduleName: ModulePath, options, callback: Function) {
 
-  /** 
-   * 会处理代码中的特定变量
-   */
   options.parse = options.parse || {};
   options.parse.overwrites = options.parse.overwrites || {};
-  options.parse.overwrites.process = options.parse.overwrites.process || '__webpack_process';
-  options.parse.overwrites.module = options.parse.overwrites.module || '__webpack_module+(module)';
-  // options.parse.overwrites.console = options.parse.overwrites.console || '__webpack_console';
-  options.parse.overwrites.global = options.parse.overwrites.global || '__webpack_global';
-  options.parse.overwrites.Buffer = options.parse.overwrites.Buffer || 'buffer+.Buffer';
-  options.parse.overwrites['__dirname'] = options.parse.overwrites['__dirname'] || '__webpack_dirname';
-  options.parse.overwrites['__filename'] = options.parse.overwrites['__filename'] || '__webpack_filename';
 
   options.resolve = options.resolve || {};
 
@@ -182,7 +172,6 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
     function writeFiles() {
       // 剩余的文件
       let remFiles = fileWrites.length;
-      // console.log(fileWrites);
       fileWrites.forEach(function(writeAction) {
         const writeActionFileName = writeAction[0].replace(HASH_REGEXP, hash);
         fileSizeMap[path.basename(writeActionFileName)] = writeAction[1].length;
@@ -205,11 +194,6 @@ function webpack(context: ContextPath, moduleName: ModulePath, options, callback
       }
     }
     function writingFinished() {
-      // const bufferObj = {
-      //   hash: hash,
-      //   chunkCount: chunksCount,
-      //   modulesCount: Object.keys(depTree.modules).length,
-      // };
       let sum = 0;
       const fileModulesMap = {};
       const chunkNameMap = {};

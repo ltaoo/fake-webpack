@@ -14,63 +14,44 @@
 
 支持`loader`，能够对样式文件进行打包。
 
-## 支持 json
+### [v0.3.0](https://github.com/ltaoo/fake-webpack/tree/0.3.0)
 
-现在在代码中`require('./package.json')`，结果会是什么呢？如果要加载该文件，会在哪个步骤加载进来呢？
+doing - 代码分割。
 
-在`resolve`时(`addModule 26line`)，`enhanced-resolve`就会在`node_module`目录寻找`json-loader`依赖，并得到
+### [v0.4.0](https://github.com/ltaoo/fake-webpack/tree/0.4.0)
 
-`/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/json-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/package.json`格式的`request`。
+doing - 代码懒加载。
 
-再借助`execLoaders`，读取文件并添加好`module.exports = `，就得到了源码。
+### [v0.5.0](https://github.com/ltaoo/fake-webpack/tree/0.5.0)
 
-### json-loader
+doing - plugins
 
-```js
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-module.exports = function(source) {
-	this.cacheable && this.cacheable();
-	var value = JSON.parse(source);
-	this.values = [value];
-	return "module.exports = " + JSON.stringify(value, undefined, "\t");
-}
-module.exports.seperable = true;
-```
+## chunks
 
-
-## css 文件处理
-
-比如样式文件，首先从`index.js`中解析出了依赖`index.css`，那么`index.js`模块的`requests`字段，就有了`index.css`。于是继续`addModule`，在`resolve`文件名时，会拿到「正确的」的路径，比如这里就是
+即提取公共依赖到一个文件中，比如多页面应用。现在假设有`A`、`B`两个页面，代码分别为：
 
 ```js
-/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css
+// a page
+const log = require('./log');
+log('a page');
 ```
-
-于是在`buildModule`中，就会使用`loader`来处理这个文件，具体是在`execLoaders`中处理的。
-
-### execLoaders
-
-首先传入的是很长的路径，然后会先使用`css-loader`进行处理，即直接执行`loader`，于是返回了
 
 ```js
-module.exports = "body { background : #ccc; }"
+// b page
+const log = require('./log');
+log('b page');
 ```
 
-由于有两个`loader`，所以在`css-loader`处理完成后，还会继续使用`style-loader`处理，返回结果变成了
+可以看到，两个页面都依赖`log.js`，所以可以将这个文件单独拿出来，而不是每个页面都打包进去。最终打包出来的文件，应该是
 
-```js
-require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle")(require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"))
-```
+- a.bundle.js
+- b.bundle.js
+- common.bundle.js
 
-### buildModule
+懒加载和`chunks`有区别吗？
 
-此时，在`buildModule`的最后面，就是用`parse`对源文件内容进行语法解析，这里就是对上面`style-loader`返回的内容做解析，可以解析出`index.css`依赖两个模块
+## 需要注意的点
 
-- /Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle
-- /Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css 
+`require.ensure`被替换为了`require.e`。
 
-
-于是继续`addModule`。
+`require.ensure([], xxx)`被替换为了`require.e(1, xxx)`，这个 1，是实际`require`的模块`id`

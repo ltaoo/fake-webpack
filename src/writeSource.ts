@@ -33,7 +33,7 @@ export default function writeSource (module: Module, options, toRealId: Function
     const moduleAppends = [];
 
     if (typeof module.source !== 'string') {
-        // 如果源码不为字符串，尝试其他后缀名
+        // 如果源码不为字符串，尝试其他后缀名?
         if (module.requireMap) {
             const extensions = (
                 (options.resolve && options.resolve.extensions)
@@ -268,12 +268,37 @@ export default function writeSource (module: Module, options, toRealId: Function
             module.contexts.forEach(genContextReplaces);
         }
 
-        // if (module.asyncs) {
-        //     module.asyncs.forEach(function genReplaceAsync(asyncItem) {
-        //         const oldFreeVars = freeVars;
-        //         freeVars = {};
-        //     });
-        // }
+        // 懒加载的 chunk
+        if (module.asyncs) {
+            module.asyncs.forEach(function genReplaceAsync(asyncItem) {
+                const oldFreeVars = freeVars;
+                freeVars = {};
+                if (asyncItem.requires) {
+                    asyncItem.requires.forEach(genReplaceRequire);
+                }
+                if (asyncItem.asyncs) {
+                    asyncItem.asyncs.forEach(genReplaceAsync);
+                }
+                // common.js
+                if (asyncItem.namesRange) {
+                    replaces.push({
+                        from: asyncItem.namesRange[0],
+                        to: asyncItem.namesRange[1],
+                        value: (
+                            (asyncItem.chunkId && toRealChunkId(asyncItem.chunkId) || '0') +
+                            ''
+                        ),
+                    });
+                }
+                if (asyncItem.propertyRange) {
+                    replaces.push({
+                        from: asyncItem.propertyRange[0],
+                        to: asyncItem.propertyRange[1],
+                        value: 'e',
+                    });
+                }
+            });
+        }
 
         /**
          * 处理变量

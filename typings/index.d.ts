@@ -48,6 +48,10 @@ interface Module {
     dirname?: string;
     filename?: string;
     size?: number;
+    // cmd
+    nameRange?: [number, number];
+    namesRange?: [number, number];
+    propertyRange?: [number, number];
 }
 interface Modules {
     [key: string]: Module;
@@ -110,6 +114,7 @@ interface Require {
     expressionRange: [number, number];
     valueRange?: [number, number];
     deleteRange?: [number, number];
+    // amd
     amdNameRange?: [number, number];
     calleeRange?: [number, number];
     variable?: string;

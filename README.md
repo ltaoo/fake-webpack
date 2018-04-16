@@ -6,147 +6,13 @@
 
 ## 说明
 
-### v0.1.0 
+### [v0.1.0](https://github.com/ltaoo/fake-webpack/tree/0.1.0)
 
 完成了最简单的打包器，能够将`commonjs`规范的代码打包到一起。
 
-### v0.2.0
+### [v0.2.0](https://github.com/ltaoo/fake-webpack/tree/0.2.0)
 
-支持样式文件的打包。
-
-## 支持 commonj
-
-现有三个文件：
-
-```javascript
-// example.js
-var inc = require('./increment').increment;
-var a = 1;
-inc(a);
-```
-
-```javascript
-// increment.js
-var add = require('./math').add;
-exports.increment = function(val) {
-    return add(val, 1);
-};
-```
-
-```javascript
-// add.js
-exports.add = function() {
-    var sum = 0, i = 0, args = arguments, l = args.length;
-    while (i < l) {
-        sum += args[i++];
-    }
-    return sum;
-};
-```
-
-现支持，以`example.js`为入口，通过命令：
-
-```bash
-node webpack example.js output.js
-```
-
-将生成一份`output.js`文件，该文件能够直接运行在浏览器中。
-
-打包后的文件在`src/test/bundle.js`，构建的依赖树为`src/test/bundle.json`。
-
-三个文件经过词法分析后得到的结果分别为：
-
-```js
-{
-  overwrite: [],
-  requires: [
-    {
-      name: './increment',
-      idOnly: true,
-      expressionRange: [18, 31],
-      line: 1,
-      column: 10,
-    },
-    { name: '__webpack_console', line: 4, column: 0, variable: 'console' },
-  ],
-};
-```
-
-```js
-{
-  overwrite: [],
-  requires: [
-    {
-      name: './math',
-      idOnly: true,
-      expressionRange: [18, 26],
-      line: 1,
-      column: 10,
-    },
-  ],
-};
-```
-
-```js
-{ overwrite: [] };
-```
-
-
-## 基本原理
-
-虽然原理说起来很简单
-
-> 从入口文件开始，分析每个文件里面的依赖，构建出一棵依赖树，最后将所有文件打包到一起。
-
-### 构建依赖树
-
-首先，对于`webpack`而言，所有的文件都是字符串。我们给定了一个入口文件如`example.js`，`webpack`会使用`fs`模块读取该文件，使用`esprima`做语法分析，并根据自己的规则（`parse.js`）生成特定的数据结构。
-
-从这个语法分析的过程，就能够拿到`example.js`文件依赖什么文件、依赖的这个文件文件名、依赖的这个文件文件名在代码中的坐标。由此构建出的特定数据结构，能够用来精准描述`example.js`这个「模块」。
-
-所有被`example.js`文件依赖的文件都经过这个分析后，构建依赖树的工作就完成了。
-
-### 生成代码
-
-接下来的工作就是将依赖树写入我们最终想生成的文件了。主要做的就是将我们写的文件名替换为`webpack`对这个文件的标志。
-
-```javascript
-var inc = require('./increment').increment;
-var a = 1;
-inc(a);
-```
-
-这么一段代码，实际会被替换为
-
-```javascript
-var inc = require(1).increment;
-var a = 1;
-inc(a);
-```
-
-因为`./increment`这个「模块」，在`webpack`内注册为了 1。
-
-但问题在于，`webpack`是如何将`./increment`字符串替换为 1 呢？直接 `filecontent.replace('./increament', 1)` 这样吗？
-
-实际上语法分析后能够得到`./increment`这个字符串所在的「位置」为`(18, 30)`，然后会将整个文件的`0-18`+`id`+`30-content.length`，就得到了想要的字符串。
-
-## 源码
-
-addModule -> resolve -> readFile -> buildModule -> fs.readfile -> execLoader -> execLoader -> execLoader -> processJs -> **parse** -> processParsedJs
-
-if (requiresNames.length)  -> addModule
-
--> 
-
-buildTree -> addChunk -> addModuleToChunk
-
-### addModule
-
-通过该函数，添加模块。从这里作为入口，将会递归调用`addModule`实现对所有的依赖处理。
-
-### processParsedJs
-
-处理经过语法分析后得到的特定结构，从这个结构中提取中文件的依赖。
+支持`loader`，能够对样式文件进行打包。
 
 ## 支持 json
 
@@ -174,18 +40,37 @@ module.exports = function(source) {
 module.exports.seperable = true;
 ```
 
-已知在处理非`js`后缀的文件时，实际请求的文件路径会改变，如`/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/json-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/package.json`，该路径会被怎样处理，在何时处理呢？
 
-经过`execLoaders`，先是`preLoader`，如果是样式，就是源文件内容。再是`loader`，就会发生变化了，变成了
+## css 文件处理
 
-```js
-require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle")(require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js"))
-```
-
-正确情况下应该是：
+比如样式文件，首先从`index.js`中解析出了依赖`index.css`，那么`index.js`模块的`requests`字段，就有了`index.css`。于是继续`addModule`，在`resolve`文件名时，会拿到「正确的」的路径，比如这里就是
 
 ```js
-require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle")(require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/xxx.css"))
+/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css
 ```
 
-后面应该还有我们实际的样式文件路径。
+于是在`buildModule`中，就会使用`loader`来处理这个文件，具体是在`execLoaders`中处理的。
+
+### execLoaders
+
+首先传入的是很长的路径，然后会先使用`css-loader`进行处理，即直接执行`loader`，于是返回了
+
+```js
+module.exports = "body { background : #ccc; }"
+```
+
+由于有两个`loader`，所以在`css-loader`处理完成后，还会继续使用`style-loader`处理，返回结果变成了
+
+```js
+require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle")(require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"))
+```
+
+### buildModule
+
+此时，在`buildModule`的最后面，就是用`parse`对源文件内容进行语法解析，这里就是对上面`style-loader`返回的内容做解析，可以解析出`index.css`依赖两个模块
+
+- /Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle
+- /Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css 
+
+
+于是继续`addModule`。

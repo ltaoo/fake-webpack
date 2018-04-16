@@ -1,0 +1,331 @@
+{
+	"warnings": [],
+	"errors": [],
+	"modules": {
+		"0": {
+			"id": 0,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js",
+			"reasons": [
+				{
+					"type": "main"
+				}
+			],
+			"loaders": [],
+			"dependencies": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js"
+			],
+			"requires": [
+				{
+					"name": "./index.css",
+					"idOnly": true,
+					"expressionRange": [
+						8,
+						21
+					],
+					"line": 1,
+					"column": 0,
+					"id": 1
+				}
+			],
+			"asyncs": [],
+			"contexts": [],
+			"source": "require('./index.css');",
+			"name": "main",
+			"chunkId": "main",
+			"chunks": [
+				"main"
+			],
+			"realId": 0
+		},
+		"1": {
+			"id": 1,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+			"reasons": [
+				{
+					"type": "require",
+					"count": 1,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js",
+					"filename": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js"
+				}
+			],
+			"loaders": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js",
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js"
+			],
+			"dependencies": [],
+			"requires": [
+				{
+					"name": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle",
+					"idOnly": true,
+					"expressionRange": [
+						8,
+						87
+					],
+					"line": 1,
+					"column": 0,
+					"id": 3
+				},
+				{
+					"name": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+					"idOnly": true,
+					"expressionRange": [
+						97,
+						243
+					],
+					"line": 1,
+					"column": 89,
+					"id": 2
+				}
+			],
+			"asyncs": [],
+			"contexts": [],
+			"source": "require(\"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle\")(require(\"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css\"))",
+			"chunks": [
+				"main"
+			],
+			"usages": 2,
+			"realId": 3
+		},
+		"2": {
+			"id": 2,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+			"reasons": [
+				{
+					"type": "require",
+					"count": 1,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+					"filename": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"
+				}
+			],
+			"loaders": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js"
+			],
+			"dependencies": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"
+			],
+			"requires": [],
+			"asyncs": [],
+			"contexts": [],
+			"source": "module.exports =\n\t\"body {\\n    background: #ccc;\\n}\";",
+			"chunks": [
+				"main"
+			],
+			"usages": 2,
+			"realId": 1
+		},
+		"3": {
+			"id": 3,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle.web.js",
+			"reasons": [
+				{
+					"type": "require",
+					"count": 1,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+					"filename": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"
+				}
+			],
+			"loaders": [],
+			"dependencies": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle.web.js"
+			],
+			"requires": [],
+			"asyncs": [],
+			"contexts": [],
+			"source": "/*\r\n\tMIT License http://www.opensource.org/licenses/mit-license.php\r\n\tAuthor Tobias Koppers @sokra\r\n*/\r\nmodule.exports = function(cssCode) {\r\n\tvar styleElement = document.createElement(\"style\");\r\n\tstyleElement.type = \"text/css\";\r\n\tif (styleElement.styleSheet) {\r\n\t\tstyleElement.styleSheet.cssText = cssCode;\r\n\t} else {\r\n\t\tstyleElement.appendChild(document.createTextNode(cssCode));\r\n\t}\r\n\tdocument.getElementsByTagName(\"head\")[0].appendChild(styleElement);\r\n}",
+			"chunks": [
+				"main"
+			],
+			"usages": 2,
+			"realId": 2
+		}
+	},
+	"chunks": {
+		"main": {
+			"id": "main",
+			"modules": {
+				"0": "include",
+				"1": "include",
+				"2": "include",
+				"3": "include"
+			},
+			"contexts": [
+				{
+					"id": 0,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js",
+					"reasons": [
+						{
+							"type": "main"
+						}
+					],
+					"loaders": [],
+					"dependencies": [
+						"/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js"
+					],
+					"requires": [
+						{
+							"name": "./index.css",
+							"idOnly": true,
+							"expressionRange": [
+								8,
+								21
+							],
+							"line": 1,
+							"column": 0,
+							"id": 1
+						}
+					],
+					"asyncs": [],
+					"contexts": [],
+					"source": "require('./index.css');",
+					"name": "main",
+					"chunkId": "main",
+					"chunks": [
+						"main"
+					],
+					"realId": 0
+				}
+			],
+			"usages": 1,
+			"realId": 0
+		}
+	},
+	"chunkCount": 1,
+	"modulesByFile": {
+		"/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js": {
+			"id": 0,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js",
+			"reasons": [
+				{
+					"type": "main"
+				}
+			],
+			"loaders": [],
+			"dependencies": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js"
+			],
+			"requires": [
+				{
+					"name": "./index.css",
+					"idOnly": true,
+					"expressionRange": [
+						8,
+						21
+					],
+					"line": 1,
+					"column": 0,
+					"id": 1
+				}
+			],
+			"asyncs": [],
+			"contexts": [],
+			"source": "require('./index.css');",
+			"name": "main",
+			"chunkId": "main",
+			"chunks": [
+				"main"
+			],
+			"realId": 0
+		},
+		"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css": {
+			"id": 1,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+			"reasons": [
+				{
+					"type": "require",
+					"count": 1,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js",
+					"filename": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.js"
+				}
+			],
+			"loaders": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js",
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js"
+			],
+			"dependencies": [],
+			"requires": [
+				{
+					"name": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle",
+					"idOnly": true,
+					"expressionRange": [
+						8,
+						87
+					],
+					"line": 1,
+					"column": 0,
+					"id": 3
+				},
+				{
+					"name": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+					"idOnly": true,
+					"expressionRange": [
+						97,
+						243
+					],
+					"line": 1,
+					"column": 89,
+					"id": 2
+				}
+			],
+			"asyncs": [],
+			"contexts": [],
+			"source": "require(\"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle\")(require(\"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css\"))",
+			"chunks": [
+				"main"
+			],
+			"usages": 2,
+			"realId": 3
+		},
+		"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css": {
+			"id": 2,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+			"reasons": [
+				{
+					"type": "require",
+					"count": 1,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+					"filename": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"
+				}
+			],
+			"loaders": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js"
+			],
+			"dependencies": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"
+			],
+			"requires": [],
+			"asyncs": [],
+			"contexts": [],
+			"source": "module.exports =\n\t\"body {\\n    background: #ccc;\\n}\";",
+			"chunks": [
+				"main"
+			],
+			"usages": 2,
+			"realId": 1
+		},
+		"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle.web.js": {
+			"id": 3,
+			"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle.web.js",
+			"reasons": [
+				{
+					"type": "require",
+					"count": 1,
+					"request": "/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css",
+					"filename": "/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/index.css"
+				}
+			],
+			"loaders": [],
+			"dependencies": [
+				"/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle.web.js"
+			],
+			"requires": [],
+			"asyncs": [],
+			"contexts": [],
+			"source": "/*\r\n\tMIT License http://www.opensource.org/licenses/mit-license.php\r\n\tAuthor Tobias Koppers @sokra\r\n*/\r\nmodule.exports = function(cssCode) {\r\n\tvar styleElement = document.createElement(\"style\");\r\n\tstyleElement.type = \"text/css\";\r\n\tif (styleElement.styleSheet) {\r\n\t\tstyleElement.styleSheet.cssText = cssCode;\r\n\t} else {\r\n\t\tstyleElement.appendChild(document.createTextNode(cssCode));\r\n\t}\r\n\tdocument.getElementsByTagName(\"head\")[0].appendChild(styleElement);\r\n}",
+			"chunks": [
+				"main"
+			],
+			"usages": 2,
+			"realId": 2
+		}
+	}
+}

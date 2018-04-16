@@ -154,3 +154,8 @@ interface BufferObj {
     chunkCount: number;
     modulesCount: number;
 }
+
+interface Loader {
+    path: string;
+    query: string;
+}

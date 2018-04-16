@@ -1,6 +1,7 @@
 const path = require('path');
 
 import * as resolve from 'enhanced-resolve';
+import * as matchRegExpObject from 'enhanced-resolve/lib/matchRegExpObject';
 
 import buildModule from './buildModule';
 import addContextModule from './addContextModule';
@@ -15,6 +16,7 @@ import addContextModule from './addContextModule';
  * @param {Function} finalCallback 
  */
 export default function addModule(depTree: DepTree, context: string, modu: string, options, reason: Reason, finalCallback: Function): void {
+    console.log('add module', modu);
     // emit task 表示开始任务？
 
     function callback(err: string | Error, result?) {
@@ -23,6 +25,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
     }
 
     const resolveFunc = resolve;
+    // 这一步，会根据环境决定加载 xx.js 还是 xx.web.js
     resolveFunc(context = context || path.dirname(modu), modu, options.resolve, resolved);
     /**
      * 文件加载后的回调
@@ -30,7 +33,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
      * @param {string} request - 实际请求的文件路径
      */
     function resolved(err: Error, request: ModulePath) {
-        console.log(err, request);
+        console.log('real url of request', err, request);
         if (err) {
             callback(err);
             return;
@@ -59,13 +62,16 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
              * 读取文件并使用 loader 处理，这一步可能被缓存后就不处理了
              */
             function readFile() {
-                const preLoaders = '';
-                const postLoaders = '';
+                let preLoaders = (options.preLoaders && requestObj.resource && requestObj.resource.path) ? matchLoadersList(options.preLoaders) : '';
+                let postLoaders = (options.postLoaders && requestObj.resource && requestObj.resource.path) ? matchLoadersList(options.postLoaders) : '';
 
                 // const resolveLoadersFunc = resolve.loaders;
+                const resolveLoadersFunc = (!options.workersNoResolve && options.workers && options.workers.ready()) 
+                    ? separateResolveLoaders
+                    : resolve.loaders;
 
                 if (preLoaders) {
-
+                    resolveLoadersFunc(context, preLoaders, options.resolve, onPreLoadersResolved);
                 } else {
                     onPreLoadersResolved(null, []);
                 }
@@ -80,69 +86,87 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
                         return callback(err);
                     }
 
-                    const allLoaders = [];
+                    if (postLoaders) {
+                        resolveLoadersFunc(context, postLoaders, options.resolve, onPostLoadersResolved);
+                    } else {
+                        onPostLoadersResolved(null, []);
+                    }
 
-                    modu.loaders = allLoaders.map(function (l) {
-                        return l.path;
-                    });
-
-                    modu.dependencies =
-                        (
-                            (requestObj.resource && requestObj.resource.path)
-                            && [requestObj.resource.path]
-                        ) || [];
-                    
-                    buildModule(
-                        context,
-                        request,
-                        preLoaders,
-                        requestObj.loaders || [],
-                        postLoaders,
-                        requestObj,
-                        options,
-                        function (err: string, extraResults, source: SourceCode, deps) {
-                            const dependencyInfo: DependencyInfo = extraResults && extraResults.dependencyInfo;
-                            if (dependencyInfo) {
-                                modu.dependencies = dependencyInfo.files;
-                            }
-
-                            if (extraResults && extraResults.warnings && extraResults.warnings.legnth > 0) {
-                                extraResults.warnings.forEach(function (w) {
-                                    depTree.warnings.push(w + '\n @ loader @' + request);
-                                });
-
-                                modu.warnings = extraResults.warnings;
-                            }
-                            if (extraResults && extraResults.errors && extraResults.errors.legnth > 0) {
-                                extraResults.errors.forEach(function (w) {
-                                    depTree.errors.push(w + '\n @ loader @' + request);
-                                });
-
-                                modu.errors = extraResults.errors;
-                            }
-
-                            if (err) {
-                                modu.errors = [err];
-                                return callback(err);
-                            }
-
-                            if (dependencyInfo.cacheable && options.cache) {
-
-                            }
-                            // console.log('before process parsed js', source, deps);
-                            return processParsedJs(source, deps);
+                    function onPostLoadersResolved(err, postLoaders) {
+                        // 将 loaders 放入 modu.loaders
+                        const allLoaders = [];
+                        if (preLoaders.length > 0) {
+                            allLoaders.push.apply(allLoaders, preLoaders = preLoaders.map(resolve.parse.part));
                         }
-                    ); // end invoke build
+                        if (requestObj.loaders && requestObj.loaders.length > 0) {
+                            allLoaders.push.apply(allLoaders, requestObj.loaders);
+                        }
+                        if (postLoaders.length > 0) {
+                            allLoaders.push.apply(allLoaders, postLoaders = postLoaders.map(resolve.parse.part));
+                        }
+
+                        modu.loaders = allLoaders.map(function (l) {
+                            return l.path;
+                        });
+
+                        modu.dependencies =
+                            (
+                                (requestObj.resource && requestObj.resource.path)
+                                && [requestObj.resource.path]
+                            ) || [];
+                        
+                        buildModule(
+                            context,
+                            request,
+                            preLoaders,
+                            requestObj.loaders || [],
+                            postLoaders,
+                            requestObj,
+                            options,
+                            function (err: string, extraResults, source: SourceCode, deps) {
+                                const dependencyInfo: DependencyInfo = extraResults && extraResults.dependencyInfo;
+                                if (dependencyInfo) {
+                                    modu.dependencies = dependencyInfo.files;
+                                }
+
+                                if (extraResults && extraResults.warnings && extraResults.warnings.legnth > 0) {
+                                    extraResults.warnings.forEach(function (w) {
+                                        depTree.warnings.push(w + '\n @ loader @' + request);
+                                    });
+
+                                    modu.warnings = extraResults.warnings;
+                                }
+                                if (extraResults && extraResults.errors && extraResults.errors.legnth > 0) {
+                                    extraResults.errors.forEach(function (w) {
+                                        depTree.errors.push(w + '\n @ loader @' + request);
+                                    });
+
+                                    modu.errors = extraResults.errors;
+                                }
+
+                                if (err) {
+                                    modu.errors = [err];
+                                    return callback(err);
+                                }
+
+                                if (dependencyInfo.cacheable && options.cache) {
+
+                                }
+                                // console.log('before process parsed js', source, deps);
+                                return processParsedJs(source, deps);
+                            }
+                        ); // end invoke build
+                    } // end onPostLoader func define
                 }
             } // end readFile func define
 
-            // function matchLoadersList(list) {
-            //     return list.filter(function (item) {
-            //         return matchRegExpObject(item, requestObj.resource.path);
-            //     }).map(function (item) {
-            //         return item.loader || item.loaders.join('!');
-            //     }).join('!');
-            // }
+            function matchLoadersList(list) {
+                return list.filter(function (item) {
+                    return matchRegExpObject(item, requestObj.resource.path);
+                }).map(function (item) {
+                    return item.loader || item.loaders.join('!');
+                }).join('!');
+            }
             // end matchLoadersList func define
 
             /**
@@ -151,6 +175,7 @@ export default function addModule(depTree: DepTree, context: string, modu: strin
              * @param {Deps} deps - 分析后 source 寻的依赖
              */
             function processParsedJs(source: SourceCode, deps: Deps) {
+                // console.log('after process parse js', deps);
                 modu.requires = deps.requires || [];
                 modu.asyncs = deps.asyncs || [];
                 modu.contexts = deps.contexts || [];

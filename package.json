@@ -4,16 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "css-loader": "0.2.0",
     "enhanced-require": "0.4.0",
     "enhanced-resolve": "0.4.0",
     "esprima": "^4.0.0",
-    "json-loader": "0.2.0"
+    "json-loader": "0.2.0",
+    "style-loader": "0.2.1"
   },
   "devDependencies": {
     "@types/node": "^9.6.4"

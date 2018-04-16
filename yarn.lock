@@ -14,6 +14,16 @@ clone@0.0.x:
   version "0.0.7"
   resolved "http://registry.npm.taobao.org/clone/download/clone-0.0.7.tgz#55dac1661a628d01896b4da5ddb49badecb00f11"
 
+css-loader@0.2.0:
+  version "0.2.0"
+  resolved "http://registry.npm.taobao.org/css-loader/download/css-loader-0.2.0.tgz#f472d142a5c5bf1f5711b93bb2ce55a7fa62f933"
+  dependencies:
+    csso "1.2.x"
+
+csso@1.2.x:
+  version "1.2.18"
+  resolved "http://registry.npm.taobao.org/csso/download/csso-1.2.18.tgz#c072db58ff3faf03b1a40453d757f155f377fa8a"
+
 enhanced-require@0.4.0:
   version "0.4.0"
   resolved "http://registry.npm.taobao.org/enhanced-require/download/enhanced-require-0.4.0.tgz#f4477b59a500e0073f4eb4819beb49b0a27187ca"
@@ -33,3 +43,7 @@ esprima@^4.0.0:
 json-loader@0.2.0:
   version "0.2.0"
   resolved "http://registry.npm.taobao.org/json-loader/download/json-loader-0.2.0.tgz#a0cebc774e46988617ff29913c8cdef9ae00f5bd"
+
+style-loader@0.2.1:
+  version "0.2.1"
+  resolved "http://registry.npm.taobao.org/style-loader/download/style-loader-0.2.1.tgz#23e51020ccb85c8c7cff012fb9ee9e3f24edead8"

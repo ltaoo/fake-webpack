@@ -4,7 +4,7 @@
 import * as fs from 'fs';
 
 import * as resolve from 'enhanced-resolve';
-import * as execLoaders from 'enhanced-require/lib/execLoaders';
+import execLoaders from './lib/execLoaders';
 
 const parse = require('./parse');
 
@@ -39,7 +39,7 @@ export default function buildModule(context, request, preLoaders, loaders, postL
     }
 
     /**
-     * 
+     * 读取模块后，使用 loader 进行处理
      * @param {*} err 
      * @param {*} content 
      */
@@ -51,7 +51,7 @@ export default function buildModule(context, request, preLoaders, loaders, postL
         const loaderContext: LoaderContext = {
             loaders: loaders.map(resolve.stringify.part),
             preLoaders: preLoaders.map(resolve.stringify.part),
-            postLoaders: preLoaders.map(resolve.stringify.part),
+            postLoaders: postLoaders.map(resolve.stringify.part),
             loaderType: null,
             web: true,
             emitWarning: function (warning) {
@@ -67,6 +67,7 @@ export default function buildModule(context, request, preLoaders, loaders, postL
         }
 
         loaderContext.loaderType = 'preLoader';
+        console.log(context, request, loaders, files);
         // 第一次调用 preLoaders
         execLoaders(
             context,
@@ -84,6 +85,7 @@ export default function buildModule(context, request, preLoaders, loaders, postL
 
                 loaderContext.loaderType = 'loader';
                 // 第二次是 loaders
+                console.log(context, request, loaders, files);
                 execLoaders(
                     context,
                     request,
@@ -101,14 +103,14 @@ export default function buildModule(context, request, preLoaders, loaders, postL
                         loaderContext.loaderType = 'postLoader';
                         // 第三次是 postLoaders
                         execLoaders(
-                            context, 
-                            request, 
-                            postLoaders, 
-                            files, 
-                            result, 
-                            loaderContext, 
-                            dependencyInfo, 
-                            options, 
+                            context,
+                            request,
+                            postLoaders,
+                            files,
+                            result,
+                            loaderContext,
+                            dependencyInfo,
+                            options,
                             function (err, result) {
                                 if (err) {
                                     return callback(err, extraResults);

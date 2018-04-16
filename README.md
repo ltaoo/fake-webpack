@@ -157,3 +157,35 @@ buildTree -> addChunk -> addModuleToChunk
 `/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/json-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/package.json`格式的`request`。
 
 再借助`execLoaders`，读取文件并添加好`module.exports = `，就得到了源码。
+
+### json-loader
+
+```js
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+module.exports = function(source) {
+	this.cacheable && this.cacheable();
+	var value = JSON.parse(source);
+	this.values = [value];
+	return "module.exports = " + JSON.stringify(value, undefined, "\t");
+}
+module.exports.seperable = true;
+```
+
+已知在处理非`js`后缀的文件时，实际请求的文件路径会改变，如`/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/json-loader/index.js!/Users/ltaoo/Documents/nodejs/fake-webpack/src/test/loader/package.json`，该路径会被怎样处理，在何时处理呢？
+
+经过`execLoaders`，先是`preLoader`，如果是样式，就是源文件内容。再是`loader`，就会发生变化了，变成了
+
+```js
+require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle")(require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js"))
+```
+
+正确情况下应该是：
+
+```js
+require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/style-loader/addStyle")(require("/Users/ltaoo/Documents/nodejs/fake-webpack/node_modules/css-loader/index.js!/xxx.css"))
+```
+
+后面应该还有我们实际的样式文件路径。

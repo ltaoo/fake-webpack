@@ -802,6 +802,6 @@ export default function parse(source: SourceCode, options) {
     overwrite: [],
   };
   walkStatements(options, context, ast.body);
-  console.log('parsed statements', JSON.stringify(context));
+  // console.log('parsed statements', JSON.stringify(context));
   return context;
 };

@@ -34,42 +34,42 @@ export default function writeSource (module: Module, options, toRealId: Function
 
     if (typeof module.source !== 'string') {
         // 如果源码不为字符串，尝试其他后缀名
-        // if (module.requireMap) {
-        //     const extensions = (
-        //         (options.resolve && options.resolve.extensions)
-        //         || ['', '.web.js', '.js']
-        //     ).slice();
+        if (module.requireMap) {
+            const extensions = (
+                (options.resolve && options.resolve.extensions)
+                || ['', '.web.js', '.js']
+            ).slice();
 
-        //     const realRequireMap = {};
-        //     const usedExtensions = [];
-        //     Object.keys(module.requireMap).sort().forEach(function (file) {
-        //         const realId = toRealId(module.requireMap[file]);
-        //         if (!realId) {
-        //             realId = realId + '';
-        //         }
+            const realRequireMap = {};
+            const usedExtensions = [];
+            Object.keys(module.requireMap).sort().forEach(function (file) {
+                let realId = toRealId(module.requireMap[file]);
+                if (!realId) {
+                    realId = realId + '';
+                }
 
-        //         realRequireMap[file] = realId;
-        //         for (let i = 0, l = extensions.length; i < l; i += 1) {
-        //             const ext = extensions[i];
-        //             const idx = file.lastIndexOf(ext);
+                realRequireMap[file] = realId;
+                for (let i = 0, l = extensions.length; i < l; i += 1) {
+                    const ext = extensions[i];
+                    const idx = file.lastIndexOf(ext);
 
-        //             if (idx >= 0 && (idx === (file.length - ext.length))) {
-        //                 usedExtensions.push(ext);
-        //                 extensions.splice(i, 1);
-        //                 i -= 1;
-        //             }
-        //         }
-        //     });
+                    if (idx >= 0 && (idx === (file.length - ext.length))) {
+                        usedExtensions.push(ext);
+                        extensions.splice(i, 1);
+                        i -= 1;
+                    }
+                }
+            });
 
-        //     const extensionsAccess = [];
-        //     usedExtensions.forEach(function (ext) {
-        //         if (ext === '') {
-        //             extensionsAccess.push('map[name]');
-        //         } else {
-        //             extensionsAccess.push('map[name+' + JSON.stringify(ext) + ']');
-        //         }
-        //     });
-        // }
+            const extensionsAccess = [];
+            usedExtensions.forEach(function (ext) {
+                if (ext === '') {
+                    extensionsAccess.push('map[name]');
+                } else {
+                    extensionsAccess.push('map[name+' + JSON.stringify(ext) + ']');
+                }
+            });
+        }
     } else {
         // 正常情况
         let freeVars = {};
